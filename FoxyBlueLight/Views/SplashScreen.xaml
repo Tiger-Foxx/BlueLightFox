@@ -3,44 +3,30 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:local="clr-namespace:FoxyBlueLight.Views"
         mc:Ignorable="d"
-        Title="FoxyBlueLight" 
-        Height="300" Width="450"
-        WindowStyle="None" 
+        Title="Foxy Light Filter" 
+        Height="300" Width="400"
+        WindowStyle="None"
         AllowsTransparency="True"
-        Background="#01000000"
+        Background="Transparent"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
     
-    <Window.Resources>
-        <Style x:Key="SplashTextStyle" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="White"/>
-            <Setter Property="FontFamily" Value="Segoe UI"/>
-            <Setter Property="FontWeight" Value="Light"/>
-            <Setter Property="HorizontalAlignment" Value="Center"/>
-            <Setter Property="Effect">
-                <Setter.Value>
-                    <DropShadowEffect ShadowDepth="1" BlurRadius="10" Color="#99000000"/>
-                </Setter.Value>
-            </Setter>
-        </Style>
-    </Window.Resources>
-    
     <Grid>
-        <!-- Arrière-plan avec flou et coins arrondis -->
-        <Border CornerRadius="20" Opacity="0.92">
+        <!-- Fond avec effet de flou -->
+        <Border CornerRadius="16">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#1E1E2E" Offset="0"/>
-                    <GradientStop Color="#2D2B55" Offset="1"/>
+                    <GradientStop Color="#232323" Offset="0"/>
+                    <GradientStop Color="#1A1A1A" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
             <Border.Effect>
-                <DropShadowEffect BlurRadius="30" ShadowDepth="0" Color="#99000000"/>
+                <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.5" Color="Black"/>
             </Border.Effect>
         </Border>
         
+        <!-- Contenu du splash -->
         <Grid Margin="25">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
@@ -48,30 +34,37 @@
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             
-            <!-- Logo animé -->
-            <Viewbox Grid.Row="0" Width="180" Height="180">
-                <Canvas Width="24" Height="24">
-                    <Path x:Name="LogoPath" Fill="#00B4FF">
-                        <Path.Data>
-                            M12,3C16.97,3 21,7.03 21,12C21,16.97 16.97,21 12,21C7.03,21 3,16.97 3,12C3,7.03 7.03,3 12,3M12,5C8.13,5 5,8.13 5,12C5,15.87 8.13,19 12,19C15.87,19 19,15.87 19,12C19,8.13 15.87,5 12,5M12,7C14.76,7 17,9.24 17,12C17,14.76 14.76,17 12,17C9.24,17 7,14.76 7,12C7,9.24 9.24,7 12,7M12,9C10.34,9 9,10.34 9,12C9,13.66 10.34,15 12,15C13.66,15 15,13.66 15,12C15,10.34 13.66,9 12,9
-                        </Path.Data>
-                        <Path.RenderTransform>
-                            <ScaleTransform x:Name="LogoScale" ScaleX="0" ScaleY="0" CenterX="12" CenterY="12"/>
-                        </Path.RenderTransform>
-                    </Path>
-                </Canvas>
-            </Viewbox>
+            <!-- Logo (cercle simple) -->
+            <Ellipse Grid.Row="0" Width="120" Height="120" 
+                   Fill="White" Opacity="0.9"
+                   Name="Logo">
+                <Ellipse.Effect>
+                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="White" Opacity="0.5"/>
+                </Ellipse.Effect>
+            </Ellipse>
             
-            <!-- Texte de l'application -->
-            <TextBlock Grid.Row="1" Text="FOXY BLUE LIGHT" 
-                       Style="{StaticResource SplashTextStyle}" 
-                       FontSize="24" Margin="0,20,0,5"
-                       Opacity="0" x:Name="AppTitle"/>
+            <!-- Titre de l'application -->
+            <TextBlock Grid.Row="1" 
+                       Name="AppTitle"
+                       Text="FOXY LIGHT FILTER" 
+                       Foreground="White" 
+                       FontWeight="Bold"
+                       FontSize="24"
+                       HorizontalAlignment="Center"
+                       Margin="0,20,0,5">
+                <TextBlock.Effect>
+                    <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.3"/>
+                </TextBlock.Effect>
+            </TextBlock>
             
-            <!-- Texte de chargement -->
-            <TextBlock Grid.Row="2" Text="Protection pour vos yeux" 
-                       Style="{StaticResource SplashTextStyle}"
-                       FontSize="14" Opacity="0" x:Name="LoadingText"/>
+            <!-- Tagline -->
+            <TextBlock Grid.Row="2" 
+                       Name="Tagline"
+                       Text="Protection avancée pour vos yeux" 
+                       Foreground="#CCFFFFFF"
+                       FontSize="14"
+                       FontWeight="Light"
+                       HorizontalAlignment="Center"/>
         </Grid>
     </Grid>
 </Window>

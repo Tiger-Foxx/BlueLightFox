@@ -1,29 +1,25 @@
-﻿// FoxyBlueLight/Models/FilterSettings.cs
-using System;
+﻿using System;
 
 namespace FoxyBlueLight.Models
 {
-    // Les différents modes de filtre disponibles
     public enum FilterMode
     {
-        Temperature,   // Basé sur la température de couleur (Kelvin)
-        Warm,          // Filtre chaud pré-configuré
-        VeryWarm,      // Filtre très chaud pré-configuré
-        Sepia,         // Mode sépia
-        Grayscale,     // Niveaux de gris
-        PureRed,       // Rouge pur (pour la vision nocturne)
-        Custom         // Paramètres RGB personnalisés
+        Temperature,
+        Warm,
+        VeryWarm,
+        Sepia,
+        Grayscale,
+        PureRed,
+        Custom
     }
     
-    // Types de planification disponibles
     public enum ScheduleType
     {
-        None,          // Pas de planification
-        Fixed,         // Heures fixes
-        Sunset         // Basé sur le coucher/lever de soleil
+        None,
+        Fixed,
+        Sunset
     }
 
-    // Classe principale pour stocker tous les paramètres du filtre
     public class FilterSettings
     {
         // Température de couleur en Kelvin (1200K - 6500K)
@@ -52,8 +48,5 @@ namespace FoxyBlueLight.Models
         // Heures planifiées (format 24h)
         public TimeSpan StartTime { get; set; } = new TimeSpan(20, 0, 0); // 20:00
         public TimeSpan EndTime { get; set; } = new TimeSpan(8, 0, 0);    // 08:00
-        
-        // Nom du profil (pour les sauvegardes)
-        public string ProfileName { get; set; } = "Défaut";
     }
 }

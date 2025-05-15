@@ -1,5 +1,4 @@
-﻿// FoxyBlueLight/Services/FilterService.cs
-using System;
+﻿using System;
 using FoxyBlueLight.Models;
 using FoxyBlueLight.Native;
 using static FoxyBlueLight.Native.DisplayAPI;
@@ -8,37 +7,34 @@ namespace FoxyBlueLight.Services
 {
     public class FilterService
     {
-        // Stocke la rampe gamma originale pour pouvoir la restaurer
         private RAMP _originalRamp;
         private bool _hasOriginalRamp;
         private FilterSettings _currentSettings;
         
         public FilterService()
         {
-            // Paramètres par défaut
             _currentSettings = new FilterSettings();
-            
-            // Sauvegarde de la rampe gamma originale
             SaveOriginalRamp();
         }
         
-        // Applique les paramètres du filtre
         public bool Apply(FilterSettings settings)
         {
             _currentSettings = settings;
             
-            // Si le filtre est désactivé, on restaure les paramètres d'origine
             if (!settings.IsEnabled)
             {
                 return RestoreOriginalRamp();
             }
             
-            // Sinon on calcule et applique la nouvelle rampe gamma
             RAMP ramp = CalculateRamp(settings);
-            return SetRamp(ramp);
+            bool result = SetRamp(ramp);
+            
+            // Enregistrer l'état du filtre
+            RestoreScreen.SaveFilterStateToRegistry(settings.IsEnabled);
+            
+            return result;
         }
         
-        // Calcule la rampe gamma en fonction des paramètres
         private RAMP CalculateRamp(FilterSettings settings)
         {
             RAMP ramp = CreateRamp();
@@ -50,8 +46,7 @@ namespace FoxyBlueLight.Services
             switch (settings.Mode)
             {
                 case FilterMode.Temperature:
-                    CalculateTemperatureMultipliers(settings.ColorTemperature, 
-                        out redMultiplier, out greenMultiplier, out blueMultiplier);
+                    CalculateTemperatureMultipliers(settings.ColorTemperature, out redMultiplier, out greenMultiplier, out blueMultiplier);
                     break;
                 case FilterMode.Warm:
                     redMultiplier = 1.0;
@@ -69,7 +64,6 @@ namespace FoxyBlueLight.Services
                     blueMultiplier = 0.6;
                     break;
                 case FilterMode.Grayscale:
-                    // Simulation de niveaux de gris
                     redMultiplier = 0.299;
                     greenMultiplier = 0.587;
                     blueMultiplier = 0.114;
@@ -113,11 +107,10 @@ namespace FoxyBlueLight.Services
             return ramp;
         }
         
-        // Calcule les multiplicateurs RGB en fonction de la température de couleur
         private void CalculateTemperatureMultipliers(int temperature, out double red, out double green, out double blue)
         {
             // Algorithme de calcul de couleur en fonction de la température (Kelvin)
-            // Basé sur une approximation du corps noir
+            // Approximation basée sur le modèle de corps noir
             temperature = Math.Max(1000, Math.Min(40000, temperature)) / 100;
             
             if (temperature <= 66)
@@ -139,13 +132,11 @@ namespace FoxyBlueLight.Services
                 blue = Math.Max(0, Math.Min(1.0, 0.54320678911019607843 * Math.Log(temperature - 10) - 1.19625408914));
         }
         
-        // Sauvegarde la rampe gamma originale du système
         private void SaveOriginalRamp()
         {
             _hasOriginalRamp = GetCurrentRamp(out _originalRamp);
         }
         
-        // Restaure la rampe gamma originale
         public bool RestoreOriginalRamp()
         {
             if (!_hasOriginalRamp) return false;

@@ -1,14 +1,53 @@
 ﻿using System;
+using System.IO;
 using System.Windows;
+using System.Diagnostics;
+using System.Runtime.InteropServices;
 using FoxyBlueLight.Native;
 using Microsoft.Win32;
+using System.Runtime.InteropServices;
 
 namespace FoxyBlueLight.Services
 {
     public static class RestoreScreen
     {
-        // Restaure les couleurs de l'écran à leurs valeurs normales
-        public static void RestoreNormalColors()
+        // Restaure les couleurs de l'écran à leurs valeurs normales et nettoie complètement les traces
+        public static void RestoreNormalColors(bool showMessage = true)
+        {
+            try
+            {
+                // 1. Restaurer les couleurs de l'écran
+                RestoreScreenColors();
+                
+                // 2. Nettoyer toutes les entrées de registre
+                CleanupRegistry();
+                
+                // 3. Nettoyer les fichiers temporaires
+                CleanupTempFiles();
+                
+                // 4. Désactiver le démarrage automatique
+                DisableAutostart();
+                
+                if (showMessage)
+                {
+                    MessageBox.Show(
+                        "Les couleurs de l'écran ont été restaurées et toutes les traces de l'application ont été nettoyées.\n\n" +
+                        "Si vous utilisez cette application à l'avenir, elle démarrera avec des paramètres par défaut.",
+                        "Restauration complète", MessageBoxButton.OK, MessageBoxImage.Information);
+                }
+            }
+            catch (Exception ex)
+            {
+                if (showMessage)
+                {
+                    MessageBox.Show($"Erreur lors de la restauration complète : {ex.Message}",
+                        "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                }
+            }
+        }
+        
+        // Restaure uniquement les couleurs de l'écran
+        private static void RestoreScreenColors()
         {
             try
             {
@@ -28,40 +67,57 @@ namespace FoxyBlueLight.Services
                 }
                 
                 // Appliquer la rampe gamma par défaut
-                bool success = DisplayAPI.SetDeviceGammaRamp(hDC, ref ramp);
+                DisplayAPI.SetDeviceGammaRamp(hDC, ref ramp);
                 
                 // Libérer le DC
                 DisplayAPI.ReleaseDC(IntPtr.Zero, hDC);
                 
-                // Enregistrer l'état "désactivé" dans le registre
-                SaveFilterStateToRegistry(false);
-                
-                if (success)
-                {
-                    MessageBox.Show("Les couleurs de l'écran ont été restaurées à leurs valeurs par défaut.", 
-                        "Succès", MessageBoxButton.OK, MessageBoxImage.Information);
-                }
-                else
-                {
-                    MessageBox.Show("La restauration des couleurs a échoué. Essayez de redémarrer votre ordinateur.", 
-                        "Erreur", MessageBoxButton.OK, MessageBoxImage.Warning);
-                }
+                // Forcer un rafraîchissement complet de l'écran
+                ForceDisplayRefresh();
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                MessageBox.Show($"Erreur lors de la restauration des couleurs : {ex.Message}", 
-                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                // Silencieux en cas d'échec - on continue avec les autres méthodes de nettoyage
             }
         }
         
-        // Enregistre l'état du filtre dans le registre Windows
-        private static void SaveFilterStateToRegistry(bool enabled)
+        // Force un rafraîchissement complet de l'affichage
+        private static void ForceDisplayRefresh()
         {
             try
             {
-                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\FoxyLightFilter"))
+                // Cette séquence d'appels force Windows à rafraîchir le profil de couleur
+                SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, null, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+            }
+            catch
+            {
+                // Silencieux en cas d'échec
+            }
+        }
+        
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+        
+        private const int SPI_SETDESKWALLPAPER = 20;
+        private const int SPIF_UPDATEINIFILE = 0x01;
+        private const int SPIF_SENDCHANGE = 0x02;
+        
+        // Nettoie toutes les entrées de registre liées à l'application
+        private static void CleanupRegistry()
+        {
+            try
+            {
+                // Supprimer toutes les clés de registre de l'application
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey("Software", true))
                 {
-                    key?.SetValue("FilterEnabled", enabled ? 1 : 0);
+                    key?.DeleteSubKeyTree("FoxyLightFilter", false);
+                }
+                
+                // Supprimer les entrées dans Run si elles existent
+                using (RegistryKey runKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true))
+                {
+                    runKey?.DeleteValue("FoxyBlueLight", false);
+                    runKey?.DeleteValue("FoxyLightFilter", false);
                 }
             }
             catch
@@ -70,7 +126,90 @@ namespace FoxyBlueLight.Services
             }
         }
         
-        // Lit l'état du filtre depuis le registre Windows
+        // Nettoie les fichiers temporaires créés par l'application
+        private static void CleanupTempFiles()
+        {
+            try
+            {
+                // Dossier AppData pour notre application
+                string appDataPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData),
+                    "FoxyBlueLight");
+                
+                // Dossier LocalAppData pour notre application
+                string localAppDataPath = Path.Combine(
+                    Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData),
+                    "FoxyBlueLight");
+                
+                // Suppression des dossiers s'ils existent
+                if (Directory.Exists(appDataPath))
+                {
+                    Directory.Delete(appDataPath, true);
+                }
+                
+                if (Directory.Exists(localAppDataPath))
+                {
+                    Directory.Delete(localAppDataPath, true);
+                }
+            }
+            catch
+            {
+                // Silencieux en cas d'échec
+            }
+        }
+        
+        // Désactive le démarrage automatique
+        private static void DisableAutostart()
+        {
+            try
+            {
+                // Supprimer de la liste des programmes au démarrage
+                using (RegistryKey key = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run", true))
+                {
+                    key?.DeleteValue("FoxyBlueLight", false);
+                }
+                
+                // Supprimer des tâches planifiées si elles existent
+                ProcessStartInfo startInfo = new ProcessStartInfo
+                {
+                    FileName = "schtasks.exe",
+                    Arguments = "/Delete /TN \"FoxyBlueLight\" /F",
+                    CreateNoWindow = true,
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true,
+                    RedirectStandardError = true
+                };
+                
+                using (Process process = Process.Start(startInfo))
+                {
+                    // Ignorer le résultat - cela peut échouer si la tâche n'existe pas
+                    process?.WaitForExit(1000);
+                }
+            }
+            catch
+            {
+                // Silencieux en cas d'échec
+            }
+        }
+        
+        // Sauvegarde l'état du filtre dans le registre
+        public static void SaveFilterStateToRegistry(bool enabled)
+        {
+            try
+            {
+                using (RegistryKey key = Registry.CurrentUser.CreateSubKey(@"Software\FoxyLightFilter"))
+                {
+                    key?.SetValue("FilterEnabled", enabled ? 1 : 0);
+                    key?.SetValue("LastUsed", DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss"));
+                }
+            }
+            catch
+            {
+                // Silencieux en cas d'échec
+            }
+        }
+        
+        // Lit l'état du filtre depuis le registre
         public static bool GetFilterStateFromRegistry()
         {
             try

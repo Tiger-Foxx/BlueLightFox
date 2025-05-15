@@ -2,46 +2,28 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Windows;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Threading;
-using LiveCharts;
-using LiveCharts.Configurations;
-using LiveCharts.Wpf;
 using FoxyBlueLight.Models;
 using FoxyBlueLight.Services;
 
 namespace FoxyBlueLight.ViewModels
 {
-    // Class pour les points du graphique
-    public class ChartPoint
-    {
-        public double Time { get; set; }
-        public double Value { get; set; }
-    }
-    
     public class MainViewModel : INotifyPropertyChanged
     {
         private readonly FilterService _filterService;
         private readonly DispatcherTimer _timer;
-        private readonly DispatcherTimer _updateChartTimer;
         
         private FilterSettings _settings;
         private ObservableCollection<FilterSettings> _profiles;
         private int _selectedProfileIndex;
         private string _statusText;
         private int _selectedModeIndex;
-        
-        // Liste des modes de filtre pour l'affichage dans le ComboBox
-        public List<string> FilterModeNames { get; } = new List<string> {
-            "Température (Kelvin)", "Chaud", "Très chaud", "Sépia", "Niveaux de gris", "Rouge nuit", "Personnalisé"
-        };
-        
-        // Graphiques
-        public SeriesCollection ChartSeries { get; set; }
-        private List<ChartPoint> _chartData;
+        private Color _customColor = Colors.White;
+        private Color _previewColor = Colors.White; // Déplacé ici!
         
         // Propriétés observables
         public FilterSettings Settings
@@ -49,8 +31,11 @@ namespace FoxyBlueLight.ViewModels
             get => _settings;
             set
             {
-                _settings = value;
-                OnPropertyChanged();
+                if (_settings != value)
+                {
+                    _settings = value;
+                    OnPropertyChanged();
+                }
             }
         }
         
@@ -59,8 +44,11 @@ namespace FoxyBlueLight.ViewModels
             get => _profiles;
             set
             {
-                _profiles = value;
-                OnPropertyChanged();
+                if (_profiles != value)
+                {
+                    _profiles = value;
+                    OnPropertyChanged();
+                }
             }
         }
         
@@ -69,8 +57,11 @@ namespace FoxyBlueLight.ViewModels
             get => _selectedProfileIndex;
             set
             {
-                _selectedProfileIndex = value;
-                OnPropertyChanged();
+                if (_selectedProfileIndex != value)
+                {
+                    _selectedProfileIndex = value;
+                    OnPropertyChanged();
+                }
             }
         }
         
@@ -79,8 +70,11 @@ namespace FoxyBlueLight.ViewModels
             get => _statusText;
             set
             {
-                _statusText = value;
-                OnPropertyChanged();
+                if (_statusText != value)
+                {
+                    _statusText = value;
+                    OnPropertyChanged();
+                }
             }
         }
         
@@ -89,10 +83,53 @@ namespace FoxyBlueLight.ViewModels
             get => _selectedModeIndex;
             set
             {
-                _selectedModeIndex = value;
-                OnPropertyChanged();
+                if (_selectedModeIndex != value)
+                {
+                    _selectedModeIndex = value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsCustomMode));
+                }
             }
         }
+        
+        public Color CustomColor
+        {
+            get => _customColor;
+            set
+            {
+                if (_customColor != value)
+                {
+                    _customColor = value;
+                    OnPropertyChanged();
+                    
+                    // Mode custom automatique quand on change la couleur
+                    Settings.Mode = FilterMode.Custom;
+                    SelectedModeIndex = (int)FilterMode.Custom;
+                    
+                    // Convertir la couleur en multiplicateurs RGB
+                    UpdateCustomColorMultipliers(value);
+                }
+            }
+        }
+        
+        // Propriété PreviewColor déplacée ici
+        public Color PreviewColor
+        {
+            get => _previewColor;
+            set
+            {
+                if (_previewColor != value)
+                {
+                    _previewColor = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+        
+        // Liste des modes de filtre pour l'affichage dans le ComboBox
+        public List<string> FilterModeNames { get; } = new List<string> {
+            "Température (Kelvin)", "Chaud", "Très chaud", "Sépia", "Niveaux de gris", "Rouge nuit", "Personnalisé"
+        };
         
         // Propriétés calculées
         public bool IsTemperatureMode => Settings.Mode == FilterMode.Temperature;
@@ -111,13 +148,13 @@ namespace FoxyBlueLight.ViewModels
             
             // Initialiser les paramètres
             _settings = new FilterSettings();
+            _settings.IsEnabled = false; // Désactivé par défaut
+            
             _profiles = new ObservableCollection<FilterSettings>();
+            _statusText = "Filtre désactivé";
             
             // Définir l'indice du mode sélectionné
             _selectedModeIndex = (int)_settings.Mode;
-            
-            // Initialiser les données du graphique
-            InitializeChart();
             
             // Créer les commandes
             ToggleFilterCommand = new RelayCommand(ToggleFilter);
@@ -130,73 +167,43 @@ namespace FoxyBlueLight.ViewModels
             _timer.Tick += Timer_Tick;
             _timer.Start();
             
-            // Timer pour mettre à jour le graphique
-            _updateChartTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(2) };
-            _updateChartTimer.Tick += UpdateChartTimer_Tick;
-            _updateChartTimer.Start();
-            
             // Mettre à jour l'état initial
             UpdateStatusText();
+        }
+        
+        public void UpdateCustomColor(Color color)
+        {
+            _customColor = color;
+            OnPropertyChanged(nameof(CustomColor));
             
-            // Appliquer les paramètres initiaux
+            // Convertir la couleur en multiplicateurs RGB
+            UpdateCustomColorMultipliers(color);
+            
+            // Appliquer le filtre
             ApplyFilter();
         }
         
-        private void InitializeChart()
+        private void UpdateCustomColorMultipliers(Color color)
         {
-            // Configuration du graphique
-            var mapper = Mappers.Xy<ChartPoint>()
-                .X(point => point.Time)
-                .Y(point => point.Value);
-            Charting.For<ChartPoint>(mapper);
-            
-            // Données initiales
-            _chartData = new List<ChartPoint>();
-            for (int i = 0; i < 30; i++)
-            {
-                _chartData.Add(new ChartPoint
-                {
-                    Time = i,
-                    Value = 0
-                });
-            }
-            
-            ChartSeries = new SeriesCollection
-            {
-                new LineSeries
-                {
-                    Title = "Activité",
-                    Values = new ChartValues<ChartPoint>(_chartData),
-                    PointGeometry = null,
-                    LineSmoothness = 0.5,
-                    Stroke = System.Windows.Media.Brushes.LightBlue,
-                    Fill = new System.Windows.Media.SolidColorBrush
-                    {
-                        Color = System.Windows.Media.Color.FromArgb(128, 173, 216, 230)
-                    }
-                }
-            };
+            // Normaliser les valeurs entre 0 et 1
+            Settings.RedMultiplier = Math.Max(0.1, color.R / 255.0);
+            Settings.GreenMultiplier = Math.Max(0.1, color.G / 255.0);
+            Settings.BlueMultiplier = Math.Max(0.1, color.B / 255.0);
+    
+            OnPropertyChanged(nameof(Settings));
+    
+            // Mettre à jour la couleur d'aperçu
+            UpdatePreviewColor();
         }
-        
-        private void UpdateChartTimer_Tick(object sender, EventArgs e)
+
+        private void UpdatePreviewColor()
         {
-            if (_chartData.Count > 30)
-            {
-                _chartData.RemoveAt(0);
-            }
-            
-            // Calculer une valeur pour le graphique (basée sur l'activité du filtre)
-            double newValue = Settings.IsEnabled ? 
-                50 + (6500 - Settings.ColorTemperature) / 65 : 0;
-            
-            _chartData.Add(new ChartPoint
-            {
-                Time = _chartData.Count,
-                Value = newValue
-            });
-            
-            // Mettre à jour le graphique
-            ChartSeries[0].Values = new ChartValues<ChartPoint>(_chartData);
+            // Créer une couleur à partir des multiplicateurs
+            PreviewColor = Color.FromRgb(
+                (byte)(Settings.RedMultiplier * 255),
+                (byte)(Settings.GreenMultiplier * 255),
+                (byte)(Settings.BlueMultiplier * 255)
+            );
         }
         
         public void UpdateFilterMode()
@@ -224,7 +231,6 @@ namespace FoxyBlueLight.ViewModels
             // Créer un nouveau profil
             var newProfile = new FilterSettings
             {
-                ProfileName = $"Profil {Profiles.Count + 1}",
                 ColorTemperature = Settings.ColorTemperature,
                 Intensity = Settings.Intensity,
                 Brightness = Settings.Brightness,
@@ -294,21 +300,29 @@ namespace FoxyBlueLight.ViewModels
         
         private void Exit()
         {
-            // S'assurer que les couleurs de l'écran sont restaurées avant de quitter
-            _filterService.RestoreOriginalRamp();
+            // Désactiver le filtre
+            Settings.IsEnabled = false;
+            ApplyFilter();
     
             // Arrêter les timers
             _timer.Stop();
-            _updateChartTimer.Stop();
+    
+            // Restauration complète et nettoyage des traces
+            RestoreScreen.RestoreNormalColors(false); // pas de message
     
             // Quitter l'application
             Application.Current.Shutdown();
         }
-        
+
         public void Cleanup()
         {
+            // Arrêter les timers
             _timer.Stop();
-            _updateChartTimer.Stop();
+    
+            // S'assurer que l'état du filtre est "désactivé" dans le registre
+            RestoreScreen.SaveFilterStateToRegistry(false);
+    
+            // Restaurer les couleurs de l'écran
             _filterService.RestoreOriginalRamp();
         }
         

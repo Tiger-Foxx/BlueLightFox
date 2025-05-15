@@ -65,4 +65,46 @@ namespace FoxyBlueLight.Helpers
             return value is HorizontalAlignment alignment && alignment == HorizontalAlignment.Right;
         }
     }
+    
+    // Ajoutez ce convertisseur s'il manque
+    public class BoolToLeftPosConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is bool boolValue && parameter is string paramString)
+            {
+                if (double.TryParse(paramString, out double position))
+                {
+                    return boolValue ? position : 0;
+                }
+            }
+            return 0;
+        }
+        
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return null;
+        }
+    }
+    
+    // Et aussi celui-ci s'il est référencé
+    public class MultiplyByConverter : IValueConverter
+    {
+        public object Convert(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            if (value is double doubleValue && parameter is string paramString)
+            {
+                if (double.TryParse(paramString, out double multiplier))
+                {
+                    return (byte)(doubleValue * multiplier);
+                }
+            }
+            return 0;
+        }
+        
+        public object ConvertBack(object value, Type targetType, object parameter, CultureInfo culture)
+        {
+            return null;
+        }
+    }
 }
