@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
 using System.Windows;
+using FoxyBlueLight.Services;
 using FoxyBlueLight.Views;
 using SplashScreen = FoxyBlueLight.Views.SplashScreen;
 
@@ -11,7 +12,13 @@ namespace FoxyBlueLight
         protected override void OnStartup(StartupEventArgs e)
         {
             base.OnStartup(e);
-            
+            // Initialiser le contexte de l'application
+            // Vérifier si l'application s'est fermée de manière inattendue avec le filtre activé
+            if (RestoreScreen.GetFilterStateFromRegistry())
+            {
+                // Restaurer les couleurs normales au démarrage
+                RestoreScreen.RestoreNormalColors();
+            }
             // Gestion des exceptions non gérées
             AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
             
