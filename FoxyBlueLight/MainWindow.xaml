@@ -4,9 +4,156 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:FoxyBlueLight"
+        xmlns:viewModels="clr-namespace:FoxyBlueLight.ViewModels"
         mc:Ignorable="d"
-        Title="MainWindow" Height="450" Width="800">
+        Title="Foxy Blue Light Filter" 
+        Height="600" Width="800"
+        WindowStartupLocation="CenterScreen"
+        Background="#1E1E1E"
+        Foreground="White">
+    
+    <Window.DataContext>
+        <viewModels:MainViewModel/>
+    </Window.DataContext>
+    
     <Grid>
-
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto"/>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="Auto"/>
+        </Grid.RowDefinitions>
+        
+        <!-- En-tête -->
+        <Border Grid.Row="0" Background="#0078D7" Padding="20,15">
+            <Grid>
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="*"/>
+                    <ColumnDefinition Width="Auto"/>
+                </Grid.ColumnDefinitions>
+                
+                <TextBlock Grid.Column="0" 
+                           Text="FOXY BLUE LIGHT FILTER" 
+                           FontSize="20" 
+                           FontWeight="Bold" 
+                           VerticalAlignment="Center"/>
+                
+                <Button Grid.Column="1"
+                        Content="{Binding Settings.IsEnabled, Converter={StaticResource BoolToOnOffConverter}}" 
+                        Command="{Binding ToggleFilterCommand}"
+                        Padding="10,5"
+                        Background="#005FA3"/>
+            </Grid>
+        </Border>
+        
+        <!-- Contenu principal -->
+        <ScrollViewer Grid.Row="1" Margin="0,10">
+            <StackPanel Margin="20,0">
+                <!-- Section Température et Luminosité -->
+                <GroupBox Header="Température et Luminosité" Foreground="White" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="Mode de filtre"/>
+                        <ComboBox ItemsSource="{Binding FilterModes}"
+                                  SelectedItem="{Binding Settings.Mode}"/>
+                        
+                        <TextBlock Text="{Binding Settings.ColorTemperature, StringFormat='Température de couleur: {0}K'}"/>
+                        <Slider Minimum="1200" Maximum="6500" 
+                                Value="{Binding Settings.ColorTemperature}"
+                                IsEnabled="{Binding IsTemperatureMode}"/>
+                        
+                        <TextBlock Text="{Binding Settings.Intensity, StringFormat='Intensité du filtre: {0:P0}'}"/>
+                        <Slider Minimum="0" Maximum="1" 
+                                Value="{Binding Settings.Intensity}"
+                                SmallChange="0.01" LargeChange="0.1"/>
+                        
+                        <TextBlock Text="{Binding Settings.Brightness, StringFormat='Luminosité: {0:P0}'}"/>
+                        <Slider Minimum="0.1" Maximum="1" 
+                                Value="{Binding Settings.Brightness}"
+                                SmallChange="0.01" LargeChange="0.1"/>
+                    </StackPanel>
+                </GroupBox>
+                
+                <!-- Section RGB Personnalisé -->
+                <GroupBox Header="RGB Personnalisé" Foreground="White" Margin="0,0,0,10">
+                    <StackPanel IsEnabled="{Binding IsCustomMode}">
+                        <TextBlock Text="{Binding Settings.RedMultiplier, StringFormat='Rouge: {0:P0}'}"/>
+                        <Slider Minimum="0" Maximum="1" 
+                                Value="{Binding Settings.RedMultiplier}"
+                                SmallChange="0.01" LargeChange="0.1"/>
+                        
+                        <TextBlock Text="{Binding Settings.GreenMultiplier, StringFormat='Vert: {0:P0}'}"/>
+                        <Slider Minimum="0" Maximum="1" 
+                                Value="{Binding Settings.GreenMultiplier}"
+                                SmallChange="0.01" LargeChange="0.1"/>
+                        
+                        <TextBlock Text="{Binding Settings.BlueMultiplier, StringFormat='Bleu: {0:P0}'}"/>
+                        <Slider Minimum="0" Maximum="1" 
+                                Value="{Binding Settings.BlueMultiplier}"
+                                SmallChange="0.01" LargeChange="0.1"/>
+                    </StackPanel>
+                </GroupBox>
+                
+                <!-- Section Planification -->
+                <GroupBox Header="Planification" Foreground="White" Margin="0,0,0,10">
+                    <StackPanel>
+                        <TextBlock Text="Type de planification"/>
+                        <ComboBox ItemsSource="{Binding ScheduleTypes}"
+                                  SelectedItem="{Binding Settings.ScheduleType}"/>
+                        
+                        <Grid IsEnabled="{Binding IsSchedulingEnabled}" Margin="0,10,0,0">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <StackPanel Grid.Column="0" Margin="0,0,5,0">
+                                <TextBlock Text="Heure de début"/>
+                                <TextBox Text="{Binding Settings.StartTime, StringFormat='{}{0:hh\\:mm}'}" Margin="0,2,0,10"/>
+                            </StackPanel>
+                            
+                            <StackPanel Grid.Column="1" Margin="5,0,0,0">
+                                <TextBlock Text="Heure de fin"/>
+                                <TextBox Text="{Binding Settings.EndTime, StringFormat='{}{0:hh\\:mm}'}" Margin="0,2,0,10"/>
+                            </StackPanel>
+                        </Grid>
+                    </StackPanel>
+                </GroupBox>
+                
+                <!-- Section Profils -->
+                <GroupBox Header="Profils" Foreground="White" Margin="0,0,0,10">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <ComboBox Grid.Column="0"
+                                  ItemsSource="{Binding Profiles}"
+                                  DisplayMemberPath="ProfileName"
+                                  SelectedIndex="{Binding SelectedProfileIndex}"/>
+                        
+                        <Button Grid.Column="1"
+                                Content="Charger"
+                                Command="{Binding LoadProfileCommand}"/>
+                        
+                        <Button Grid.Column="2"
+                                Content="Enregistrer"
+                                Command="{Binding SaveProfileCommand}"/>
+                        
+                        <!-- Ajoutez ce bouton quelque part dans votre interface actuelle -->
+                        <Button Content="RESTAURER ÉCRAN NORMAL" Click="RestoreScreen_Click" 
+                                Background="Red" Foreground="White"
+                                Padding="10" Margin="10"
+                                HorizontalAlignment="Center"/>
+                    </Grid>
+                </GroupBox>
+            </StackPanel>
+            
+        </ScrollViewer>
+        
+        <!-- Barre d'état -->
+        <Border Grid.Row="2" Background="#333333" Padding="10">
+            <TextBlock Text="{Binding StatusText}"/>
+        </Border>
     </Grid>
 </Window>

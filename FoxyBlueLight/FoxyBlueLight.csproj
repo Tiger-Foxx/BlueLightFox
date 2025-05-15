@@ -8,4 +8,20 @@
         <UseWPF>true</UseWPF>
     </PropertyGroup>
 
+    <ItemGroup>
+      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+      <PackageReference Include="FluentWPF" Version="0.10.2" />
+      <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+      <PackageReference Include="Hardcodet.Wpf.TaskbarNotification" Version="1.0.5" />
+      <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
+      <PackageReference Include="MahApps.Metro" Version="3.0.0-rc0516" />
+      <PackageReference Include="ModernWpfUI" Version="0.9.7-preview.2" />
+      <PackageReference Include="Verify.CommunityToolkit.Mvvm" Version="0.1.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+        <Resource Include="Resources\Icons\AppIcon.ico" />
+
+    </ItemGroup>
+
 </Project>
