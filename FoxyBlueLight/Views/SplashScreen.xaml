@@ -91,7 +91,7 @@
                 
                 <!-- Logo centré -->
                 <Image x:Name="LogoImage" 
-                   Source="pack://application:,,,/FoxyBlueLight;component/Resources/logo2.png" 
+                   Source="pack://application:,,,/FoxyBlueLight;component/Resources/logo.png" 
                    Width="120" Height="120"
                    Opacity="0">
                     <Image.RenderTransform>

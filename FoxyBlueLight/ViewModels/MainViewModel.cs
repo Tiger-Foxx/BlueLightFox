@@ -22,7 +22,7 @@ namespace FoxyBlueLight.ViewModels
         private int _attenuationTypeIndex;
         
         // Événements
-        public event PropertyChangedEventHandler PropertyChanged;
+        public event PropertyChangedEventHandler? PropertyChanged;
         
         // Propriétés
         public FilterSettings Settings
@@ -118,7 +118,7 @@ namespace FoxyBlueLight.ViewModels
             ApplyChangesCommand = new RelayCommand(ExecuteApplyChanges);
             RestoreScreenCommand = new RelayCommand(ExecuteRestoreScreen);
             ExitCommand = new RelayCommand(ExecuteExit);
-            SelectColorCommand = new RelayCommand<Color>(ExecuteSelectPresetColor);
+            SelectColorCommand = new RelayCommand<object>(ExecuteSelectPresetColor);
             
             // Timer pour les messages de statut
             _statusTimer = new DispatcherTimer
@@ -199,8 +199,34 @@ namespace FoxyBlueLight.ViewModels
             Application.Current.Shutdown();
         }
         
-        private void ExecuteSelectPresetColor(Color color)
+        private void ExecuteSelectPresetColor(object colorParam)
         {
+            Color color;
+            
+            if (colorParam is string colorString)
+            {
+                try
+                {
+                    color = (Color)ColorConverter.ConvertFromString(colorString);
+                }
+                catch
+                {
+                    // Couleur par défaut en cas d'échec de conversion
+                    color = Colors.Orange;
+                    System.Diagnostics.Debug.WriteLine($"Erreur de conversion de couleur: {colorString}");
+                }
+            }
+            else if (colorParam is Color directColor)
+            {
+                color = directColor;
+            }
+            else
+            {
+                // Valeur par défaut
+                color = Colors.Orange;
+                System.Diagnostics.Debug.WriteLine($"Type inattendu: {colorParam?.GetType().Name ?? "null"}");
+            }
+            
             // Extraire les composantes RGB normalisées
             Settings.RedMultiplier = color.R / 255.0;
             Settings.GreenMultiplier = color.G / 255.0;
@@ -330,9 +356,15 @@ namespace FoxyBlueLight.ViewModels
         
         private FilterSettings LoadSettings()
         {
-            // TODO: Implémenter le chargement depuis les paramètres persistants
-            // Retourner des paramètres par défaut pour l'instant
-            return new FilterSettings();
+            // Paramètres par défaut
+            return new FilterSettings
+            {
+                Mode = FilterMode.NightRed,                     // Mode rouge par défaut
+                AttenuationType = AttenuationType.ReduceBrightness,  // Mode luminosité préservée
+                RedMultiplier = 1.0,
+                GreenMultiplier = 0.3,
+                BlueMultiplier = 0.3
+            };
         }
         
         private void SaveSettings()
@@ -351,7 +383,7 @@ namespace FoxyBlueLight.ViewModels
         private readonly Action _execute;
         private readonly Func<bool> _canExecute;
         
-        public event EventHandler CanExecuteChanged
+        public event EventHandler? CanExecuteChanged
         {
             add { CommandManager.RequerySuggested += value; }
             remove { CommandManager.RequerySuggested -= value; }
@@ -363,12 +395,12 @@ namespace FoxyBlueLight.ViewModels
             _canExecute = canExecute;
         }
         
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
             return _canExecute == null || _canExecute();
         }
         
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
             _execute();
         }
@@ -377,28 +409,44 @@ namespace FoxyBlueLight.ViewModels
     public class RelayCommand<T> : ICommand
     {
         private readonly Action<T> _execute;
-        private readonly Predicate<T> _canExecute;
+        private readonly Predicate<T>? _canExecute;
         
-        public event EventHandler CanExecuteChanged
+        public event EventHandler? CanExecuteChanged
         {
             add { CommandManager.RequerySuggested += value; }
             remove { CommandManager.RequerySuggested -= value; }
         }
         
-        public RelayCommand(Action<T> execute, Predicate<T> canExecute = null)
+        public RelayCommand(Action<T> execute, Predicate<T>? canExecute = null)
         {
             _execute = execute ?? throw new ArgumentNullException(nameof(execute));
             _canExecute = canExecute;
         }
         
-        public bool CanExecute(object parameter)
+        public bool CanExecute(object? parameter)
         {
-            return _canExecute == null || _canExecute((T)parameter);
+            return _canExecute == null || (parameter is T typedParam && _canExecute(typedParam));
         }
         
-        public void Execute(object parameter)
+        public void Execute(object? parameter)
         {
-            _execute((T)parameter);
+            if (parameter is T typedParam)
+            {
+                _execute(typedParam);
+            }
+            else if (parameter != null)
+            {
+                // Tentative de conversion si possible
+                try
+                {
+                    var converted = (T)Convert.ChangeType(parameter, typeof(T));
+                    _execute(converted);
+                }
+                catch
+                {
+                    System.Diagnostics.Debug.WriteLine($"Impossible de convertir {parameter} en {typeof(T).Name}");
+                }
+            }
         }
     }
 }

@@ -148,48 +148,177 @@
                                      Margin="0,0,0,10"/>
                             
                             <WrapPanel HorizontalAlignment="Center" Margin="0,0,0,15">
-                                <Button Width="36" Height="36" Margin="4" 
-                                       Background="#FFE3B9" 
-                                       Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
-                                       Command="{Binding SelectColorCommand}" 
-                                       CommandParameter="#FFE3B9"
-                                       ToolTip="Ambre chaud"/>
-                                
-                                <Button Width="36" Height="36" Margin="4" 
-                                       Background="#FFD689" 
-                                       Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
-                                       Command="{Binding SelectColorCommand}" 
-                                       CommandParameter="#FFD689"
-                                       ToolTip="Orange doux"/>
-                                
-                                <Button Width="36" Height="36" Margin="4" 
-                                       Background="#FFECB3" 
-                                       Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
-                                       Command="{Binding SelectColorCommand}" 
-                                       CommandParameter="#FFECB3"
-                                       ToolTip="Jaune doux"/>
-                                
-                                <Button Width="36" Height="36" Margin="4" 
-                                       Background="#E0F2F1" 
-                                       Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
-                                       Command="{Binding SelectColorCommand}" 
-                                       CommandParameter="#E0F2F1"
-                                       ToolTip="Cyan très doux"/>
-                                
-                                <Button Width="36" Height="36" Margin="4" 
-                                       Background="#E1BEE7" 
-                                       Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
-                                       Command="{Binding SelectColorCommand}" 
-                                       CommandParameter="#E1BEE7"
-                                       ToolTip="Mauve tendre"/>
-                                
-                                <Button Width="36" Height="36" Margin="4" 
-                                       Background="#D1C4E9" 
-                                       Style="{StaticResource MaterialDesignFloatingActionMiniDarkButton}"
-                                       Command="{Binding SelectColorCommand}" 
-                                       CommandParameter="#D1C4E9"
-                                       ToolTip="Lavande"/>
-                            </WrapPanel>
+    <Button Width="36" Height="36" Margin="4" 
+           Background="#FFE3B9" 
+           Command="{Binding SelectColorCommand}" 
+           CommandParameter="#FFE3B9"
+           ToolTip="Ambre chaud"
+           BorderThickness="0">
+        <Button.Template>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Fill="{TemplateBinding Background}"/>
+                    <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Button.Template>
+    </Button>
+    
+    <Button Width="36" Height="36" Margin="4" 
+           Background="#FFD689" 
+           Command="{Binding SelectColorCommand}" 
+           CommandParameter="#FFD689"
+           ToolTip="Orange doux"
+           BorderThickness="0">
+        <Button.Template>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Fill="{TemplateBinding Background}"/>
+                    <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Button.Template>
+    </Button>
+    
+    <Button Width="36" Height="36" Margin="4" 
+           Background="#FFECB3" 
+           Command="{Binding SelectColorCommand}" 
+           CommandParameter="#FFECB3"
+           ToolTip="Jaune doux"
+           BorderThickness="0">
+        <Button.Template>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Fill="{TemplateBinding Background}"/>
+                    <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Button.Template>
+    </Button>
+    
+    <Button Width="36" Height="36" Margin="4" 
+           Background="#E0F2F1" 
+           Command="{Binding SelectColorCommand}" 
+           CommandParameter="#E0F2F1"
+           ToolTip="Cyan très doux"
+           BorderThickness="0">
+        <Button.Template>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Fill="{TemplateBinding Background}"/>
+                    <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Button.Template>
+    </Button>
+    
+    <Button Width="36" Height="36" Margin="4" 
+           Background="#E1BEE7" 
+           Command="{Binding SelectColorCommand}" 
+           CommandParameter="#E1BEE7"
+           ToolTip="Mauve tendre"
+           BorderThickness="0">
+        <Button.Template>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Fill="{TemplateBinding Background}"/>
+                    <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Button.Template>
+    </Button>
+    
+    <Button Width="36" Height="36" Margin="4" 
+           Background="#D1C4E9" 
+           Command="{Binding SelectColorCommand}" 
+           CommandParameter="#D1C4E9"
+           ToolTip="Lavande"
+           BorderThickness="0">
+        <Button.Template>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Fill="{TemplateBinding Background}"/>
+                    <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Button.Template>
+    </Button>
+    
+    <!-- Ajout de couleurs supplémentaires pour une palette plus riche -->
+    <Button Width="36" Height="36" Margin="4" 
+           Background="#FF6700" 
+           Command="{Binding SelectColorCommand}" 
+           CommandParameter="#FF6700"
+           ToolTip="Orange vif"
+           BorderThickness="0">
+        <Button.Template>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Fill="{TemplateBinding Background}"/>
+                    <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Button.Template>
+    </Button>
+    
+    <Button Width="36" Height="36" Margin="4" 
+           Background="#FF9E80" 
+           Command="{Binding SelectColorCommand}" 
+           CommandParameter="#FF9E80"
+           ToolTip="Rose chaud"
+           BorderThickness="0">
+        <Button.Template>
+            <ControlTemplate TargetType="{x:Type Button}">
+                <Grid>
+                    <Ellipse Fill="{TemplateBinding Background}"/>
+                    <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                </Grid>
+                <ControlTemplate.Triggers>
+                    <Trigger Property="IsMouseOver" Value="True">
+                        <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                    </Trigger>
+                </ControlTemplate.Triggers>
+            </ControlTemplate>
+        </Button.Template>
+    </Button>
+</WrapPanel>
+                            
+                            
                         </StackPanel>
                         
                         <!-- Contrôles RGB (visible uniquement en mode personnalisé) -->

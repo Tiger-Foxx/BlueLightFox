@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Runtime.InteropServices;
 using System.Windows;
 using System.Windows.Interop;
 using System.Windows.Media;
@@ -36,7 +37,7 @@ namespace FoxyBlueLight.Services
                     return ApplyGammaRamp(settings);
                 
                 case AttenuationType.ColorOverlay:
-                    RestoreOriginalRamp(); // Restaurer gamma normal
+                    RestoreOriginalRamp(); // Important: Restaurer gamma normal d'abord
                     return ApplyColorOverlay(settings);
                 
                 case AttenuationType.ReduceBrightness:
@@ -55,15 +56,15 @@ namespace FoxyBlueLight.Services
             RAMP ramp = CalculateRamp(settings);
             bool result = SetRamp(ramp);
             
-            // Enregistrer l'état du filtre
-            SaveFilterStateToRegistry(settings.IsEnabled);
-            
             return result;
         }
         
-        // Méthode par superposition de couleur (plus douce pour les yeux) qui permet les clics
+        // Méthode par superposition de couleur (plus douce pour les yeux)
         private bool ApplyColorOverlay(FilterSettings settings)
         {
+            // Fermer toute fenêtre d'overlay existante d'abord
+            CloseOverlayWindow();
+            
             if (_overlayWindow == null)
             {
                 _overlayWindow = new Window
@@ -75,11 +76,11 @@ namespace FoxyBlueLight.Services
                     WindowState = WindowState.Maximized,
                     ShowInTaskbar = false,
                     ResizeMode = ResizeMode.NoResize,
-                    // Désactiver l'interaction avec cette fenêtre
+                    // Crucial: désactiver l'interaction avec cette fenêtre
                     IsHitTestVisible = false
                 };
                 
-                // Créer la fenêtre et appliquer les styles pour passer les clics
+                // Rendre la fenêtre vraiment transparente aux entrées utilisateur
                 _overlayWindow.SourceInitialized += (s, e) => 
                 {
                     IntPtr hwnd = new WindowInteropHelper(_overlayWindow).Handle;
@@ -90,18 +91,33 @@ namespace FoxyBlueLight.Services
                         extendedStyle | NativeMethods.WS_EX_TRANSPARENT | NativeMethods.WS_EX_LAYERED | NativeMethods.WS_EX_NOACTIVATE
                     );
                 };
+                
+                _overlayWindow.Loaded += (s, e) =>
+                {
+                    // S'assurer que la fenêtre couvre TOUT l'écran
+                    _overlayWindow.Left = SystemParameters.VirtualScreenLeft;
+                    _overlayWindow.Top = SystemParameters.VirtualScreenTop;
+                    _overlayWindow.Width = SystemParameters.VirtualScreenWidth;
+                    _overlayWindow.Height = SystemParameters.VirtualScreenHeight;
+                };
             }
             
+            // Obtenir la couleur pour le filtre en fonction du mode
             Color filterColor = GetFilterColorForSettings(settings);
-            double opacity = settings.Intensity * 0.5; // Réduire l'intensité pour un effet plus doux
             
+            // Réduire l'opacité pour un effet plus doux, comme Windows Night Light
+            // L'intensité contrôle l'opacité du filtre
+            byte opacity = (byte)(settings.Intensity * 100);
+            
+            // Créer un pinceau semi-transparent avec la couleur du filtre
             _overlayWindow.Background = new SolidColorBrush(Color.FromArgb(
-                (byte)(opacity * 255),
+                opacity,
                 filterColor.R,
                 filterColor.G,
                 filterColor.B
             ));
             
+            // Afficher la fenêtre d'overlay
             if (!_overlayWindow.IsVisible)
             {
                 _overlayWindow.Show();
@@ -110,7 +126,7 @@ namespace FoxyBlueLight.Services
             return true;
         }
         
-        // Méthode préservant mieux les couleurs avec réduction de luminosité ajustée
+        // Méthode préservant mieux les couleurs avec réduction de luminosité
         private bool ApplyBrightnessPreservingFilter(FilterSettings settings)
         {
             RAMP ramp = new RAMP
@@ -142,30 +158,33 @@ namespace FoxyBlueLight.Services
                     break;
             }
             
-            // Appliquer une courbe de préservation des couleurs
+            // Préserver la luminosité globale tout en réduisant la lumière bleue
+            double avgMultiplier = (redMultiplier + greenMultiplier + blueMultiplier) / 3.0;
+            double brightnessAdjust = settings.Brightness * (1.0 / avgMultiplier);
+            
+            // Application d'une courbe différente qui préserve mieux les couleurs
             for (int i = 0; i < 256; i++)
             {
                 double normalizedValue = i / 255.0;
                 
-                // Formule de préservation des couleurs avec réduction de luminosité sélective
-                double adjustedRed = Math.Pow(normalizedValue, 1.0 + (1.0 - redMultiplier) * settings.Intensity);
-                double adjustedGreen = Math.Pow(normalizedValue, 1.0 + (1.0 - greenMultiplier) * settings.Intensity);
-                double adjustedBlue = Math.Pow(normalizedValue, 1.0 + (1.0 - blueMultiplier) * settings.Intensity);
+                // Formule avancée de préservation des couleurs
+                double intensity = settings.Intensity;
+                double redAdjusted = Math.Pow(normalizedValue, 1.0 / redMultiplier) * redMultiplier * brightnessAdjust;
+                double greenAdjusted = Math.Pow(normalizedValue, 1.0 / greenMultiplier) * greenMultiplier * brightnessAdjust;
+                double blueAdjusted = Math.Pow(normalizedValue, 1.0 / blueMultiplier) * blueMultiplier * brightnessAdjust;
                 
-                // Appliquer la luminosité
-                adjustedRed = adjustedRed * redMultiplier * settings.Brightness;
-                adjustedGreen = adjustedGreen * greenMultiplier * settings.Brightness;
-                adjustedBlue = adjustedBlue * blueMultiplier * settings.Brightness;
+                // Appliquer l'intensité comme un mélange entre original et filtré
+                redAdjusted = normalizedValue * (1.0 - intensity) + redAdjusted * intensity;
+                greenAdjusted = normalizedValue * (1.0 - intensity) + greenAdjusted * intensity;
+                blueAdjusted = normalizedValue * (1.0 - intensity) + blueAdjusted * intensity;
                 
-                // Mettre à l'échelle
-                ramp.Red[i] = (ushort)Math.Max(0, Math.Min(65535, adjustedRed * 65535.0));
-                ramp.Green[i] = (ushort)Math.Max(0, Math.Min(65535, adjustedGreen * 65535.0));
-                ramp.Blue[i] = (ushort)Math.Max(0, Math.Min(65535, adjustedBlue * 65535.0));
+                // Mettre à l'échelle pour les valeurs gamma
+                ramp.Red[i] = (ushort)Math.Max(0, Math.Min(65535, redAdjusted * 65535.0));
+                ramp.Green[i] = (ushort)Math.Max(0, Math.Min(65535, greenAdjusted * 65535.0));
+                ramp.Blue[i] = (ushort)Math.Max(0, Math.Min(65535, blueAdjusted * 65535.0));
             }
             
             bool result = SetRamp(ramp);
-            SaveFilterStateToRegistry(settings.IsEnabled);
-            
             return result;
         }
         
@@ -203,15 +222,48 @@ namespace FoxyBlueLight.Services
             return Color.FromRgb(r, g, b);
         }
         
-        // Calcule la couleur pour une température donnée
+        // Calcule la couleur pour une température donnée (plus précise)
         private void GetColorForTemperature(int temp, out byte r, out byte g, out byte b)
         {
+            // Formule de conversion température (Kelvin) → RGB similaire à f.lux
+            double temperature = temp / 100.0;
             double red, green, blue;
-            CalculateTemperatureMultipliers(temp, out red, out green, out blue);
             
-            r = (byte)(red * 255);
-            g = (byte)(green * 255);
-            b = (byte)(blue * 255);
+            if (temperature <= 66)
+            {
+                red = 255;
+                
+                green = temperature;
+                green = 99.4708025861 * Math.Log(green) - 161.1195681661;
+                green = Math.Max(0, Math.Min(255, green));
+                
+                if (temperature <= 19)
+                {
+                    blue = 0;
+                }
+                else
+                {
+                    blue = temperature - 10;
+                    blue = 138.5177312231 * Math.Log(blue) - 305.0447927307;
+                    blue = Math.Max(0, Math.Min(255, blue));
+                }
+            }
+            else
+            {
+                red = temperature - 60;
+                red = 329.698727446 * Math.Pow(red, -0.1332047592);
+                red = Math.Max(0, Math.Min(255, red));
+                
+                green = temperature - 60;
+                green = 288.1221695283 * Math.Pow(green, -0.0755148492);
+                green = Math.Max(0, Math.Min(255, green));
+                
+                blue = 255;
+            }
+            
+            r = (byte)red;
+            g = (byte)green;
+            b = (byte)blue;
         }
         
         // Calcule la couleur pour un mode prédéfini
@@ -384,7 +436,7 @@ namespace FoxyBlueLight.Services
                 
             bool result = SetRamp(_originalRamp);
             
-            // Force refresh
+            // Force refresh (parfois nécessaire sur certains systèmes)
             try
             {
                 SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, null, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
@@ -395,24 +447,6 @@ namespace FoxyBlueLight.Services
             }
             
             return result;
-        }
-        
-        private void SaveFilterStateToRegistry(bool isEnabled)
-        {
-            try
-            {
-                Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"SOFTWARE\FoxyBlueLight");
-                var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"SOFTWARE\FoxyBlueLight", true);
-                if (key != null)
-                {
-                    key.SetValue("FilterEnabled", isEnabled ? 1 : 0);
-                    key.Close();
-                }
-            }
-            catch
-            {
-                // Ignorer les erreurs
-            }
         }
     }
 }

@@ -26,19 +26,19 @@ namespace FoxyBlueLight.Models
     {
         // Paramètres principaux
         public bool IsEnabled { get; set; } = false;
-        public FilterMode Mode { get; set; } = FilterMode.Temperature;
-        public AttenuationType AttenuationType { get; set; } = AttenuationType.ColorOverlay;
-        public double Opacity { get; set; } = 0.3; // Transparence du widget
-        
+        public FilterMode Mode { get; set; } = FilterMode.NightRed; // Mode rouge par défaut
+        public AttenuationType AttenuationType { get; set; } = AttenuationType.ReduceBrightness; // Mode luminosité préservée par défaut
+        public double Opacity { get; set; } = 0.85; // Transparence du widget
+    
         // Paramètres de couleur
         public int ColorTemperature { get; set; } = 4500; // Kelvin (1900-6500)
         public double Intensity { get; set; } = 0.5;      // 0.0-1.0
         public double Brightness { get; set; } = 1.0;     // 0.1-1.0
-        
-        // Valeurs RGB pour le mode personnalisé
+    
+        // Valeurs RGB pour le mode personnalisé - réglages rouges
         public double RedMultiplier { get; set; } = 1.0;
-        public double GreenMultiplier { get; set; } = 0.9;
-        public double BlueMultiplier { get; set; } = 0.8;
+        public double GreenMultiplier { get; set; } = 0.3; // Réduit pour obtenir une teinte plus rouge
+        public double BlueMultiplier { get; set; } = 0.3;  // Réduit pour obtenir une teinte plus rouge
         
         // Paramètres de planification
         public bool UseSchedule { get; set; } = false;
