@@ -1,6 +1,6 @@
 ﻿# FoxyBlueLight
 
-![FoxyBlueLight Logo](https://github.com/Tiger-Foxx/BlueLightFox/raw/main/FoxyBlueLight/Resources/logo.png)
+<img alt="FoxyBlueLight Logo" width="250px" src="https://github.com/Tiger-Foxx/BlueLightFox/raw/main/FoxyBlueLight/Resources/logo.png">
 
 ## Protection avancée des yeux contre la lumière bleue pour Windows
 
