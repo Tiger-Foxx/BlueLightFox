@@ -10,7 +10,7 @@
 
 **FoxyBlueLight** est une application de filtrage de lumière bleue sophistiquée pour Windows, conçue pour réduire la fatigue oculaire lors de l'utilisation prolongée d'écrans. L'application propose plusieurs modes de filtrage, des options de personnalisation avancées et une interface utilisateur moderne développée avec WPF et MaterialDesign.
 
-![Screenshot](https://github.com/Tiger-Foxx/BlueLightFox/raw/main/Screenshots/main-interface.png)
+![Screenshot](https://github.com/Tiger-Foxx/BlueLightFox/blob/main/FoxyBlueLight/screenShots/capture.png?raw=true)
 
 ## 📋 Table des matières
 

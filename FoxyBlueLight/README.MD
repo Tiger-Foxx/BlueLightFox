@@ -10,7 +10,7 @@
 
 **FoxyBlueLight** est une application de filtrage de lumière bleue sophistiquée pour Windows, conçue pour réduire la fatigue oculaire lors de l'utilisation prolongée d'écrans. L'application propose plusieurs modes de filtrage, des options de personnalisation avancées et une interface utilisateur moderne développée avec WPF et MaterialDesign.
 
-![Screenshot](https://github.com/Tiger-Foxx/BlueLightFox/raw/main/Screenshots/main-interface.png)
+![Screenshot](https://github.com/Tiger-Foxx/BlueLightFox/blob/main/FoxyBlueLight/screenShots/capture.png?raw=true)
 
 ## 📋 Table des matières
 
@@ -289,10 +289,10 @@ FoxyBlueLight implémente un contrôle personnalisé `ColorSelector` qui permet 
 
 ```xml
 <!-- Extrait de XAML: Sélecteur de couleur personnalisé -->
-<Button Width="36" Height="36" Margin="4" 
-       Background="#FFE3B9"
-       Command="{Binding SelectColorCommand}" 
-       CommandParameter="#FFE3B9">
+<Button Width="36" Height="36" Margin="4"
+        Background="#FFE3B9"
+        Command="{Binding SelectColorCommand}"
+        CommandParameter="#FFE3B9">
     <Button.Template>
         <ControlTemplate TargetType="Button">
             <Grid>
@@ -322,7 +322,7 @@ Les sliders standard ont été remplacés par des sliders personnalisés avec un
                 <Grid>
                     <!-- Track background -->
                     <Border Height="4" CornerRadius="2" Background="{TemplateBinding Background}" Margin="7,0"/>
-                    
+
                     <!-- Thumb (curseur) personnalisé avec animation au survol -->
                     <Track.Thumb>
                         <Thumb>
