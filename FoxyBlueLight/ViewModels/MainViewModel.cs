@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Runtime.CompilerServices;
 using System.Windows;
@@ -14,18 +13,11 @@ namespace FoxyBlueLight.ViewModels
 {
     public class MainViewModel : INotifyPropertyChanged
     {
-        private readonly FilterService _filterService;
-        private readonly DispatcherTimer _timer;
-        
-        private FilterSettings _settings;
-        private ObservableCollection<FilterSettings> _profiles;
-        private int _selectedProfileIndex;
-        private string _statusText;
-        private int _selectedModeIndex;
-        private Color _customColor = Colors.White;
-        private Color _previewColor = Colors.White; // Déplacé ici!
-        
+        private FilterService _filterService;
+        private readonly DispatcherTimer _statusTimer;
+
         // Propriétés observables
+        private FilterSettings _settings;
         public FilterSettings Settings
         {
             get => _settings;
@@ -38,81 +30,9 @@ namespace FoxyBlueLight.ViewModels
                 }
             }
         }
-        
-        public ObservableCollection<FilterSettings> Profiles
-        {
-            get => _profiles;
-            set
-            {
-                if (_profiles != value)
-                {
-                    _profiles = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        
-        public int SelectedProfileIndex
-        {
-            get => _selectedProfileIndex;
-            set
-            {
-                if (_selectedProfileIndex != value)
-                {
-                    _selectedProfileIndex = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        
-        public string StatusText
-        {
-            get => _statusText;
-            set
-            {
-                if (_statusText != value)
-                {
-                    _statusText = value;
-                    OnPropertyChanged();
-                }
-            }
-        }
-        
-        public int SelectedModeIndex
-        {
-            get => _selectedModeIndex;
-            set
-            {
-                if (_selectedModeIndex != value)
-                {
-                    _selectedModeIndex = value;
-                    OnPropertyChanged();
-                    OnPropertyChanged(nameof(IsCustomMode));
-                }
-            }
-        }
-        
-        public Color CustomColor
-        {
-            get => _customColor;
-            set
-            {
-                if (_customColor != value)
-                {
-                    _customColor = value;
-                    OnPropertyChanged();
-                    
-                    // Mode custom automatique quand on change la couleur
-                    Settings.Mode = FilterMode.Custom;
-                    SelectedModeIndex = (int)FilterMode.Custom;
-                    
-                    // Convertir la couleur en multiplicateurs RGB
-                    UpdateCustomColorMultipliers(value);
-                }
-            }
-        }
-        
-        // Propriété PreviewColor déplacée ici
+
+        // Propriétés calculées pour l'interface
+        private Color _previewColor;
         public Color PreviewColor
         {
             get => _previewColor;
@@ -125,80 +45,122 @@ namespace FoxyBlueLight.ViewModels
                 }
             }
         }
+
+        private string _statusText = "Filtre désactivé";
+        public string StatusText
+        {
+            get => _statusText;
+            set
+            {
+                if (_statusText != value)
+                {
+                    _statusText = value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+        // Propriétés calculées pour l'interface
+        public List<string> FilterModeNames { get; } = new List<string>(FilterSettings.ModeNames);
         
-        // Liste des modes de filtre pour l'affichage dans le ComboBox
-        public List<string> FilterModeNames { get; } = new List<string> {
-            "Température (Kelvin)", "Chaud", "Très chaud", "Sépia", "Niveaux de gris", "Rouge nuit", "Personnalisé"
-        };
-        
-        // Propriétés calculées
         public bool IsTemperatureMode => Settings.Mode == FilterMode.Temperature;
         public bool IsCustomMode => Settings.Mode == FilterMode.Custom;
-        
+
         // Commandes
         public ICommand ToggleFilterCommand { get; }
-        public ICommand SaveProfileCommand { get; }
-        public ICommand LoadProfileCommand { get; }
+        public ICommand ApplyChangesCommand { get; }
+        public ICommand RestoreScreenCommand { get; }
         public ICommand ExitCommand { get; }
+        public ICommand SelectPresetColorCommand { get; }
         
+        // Propriétés pour les index des ComboBox
+        private int _modeIndex;
+        public int ModeIndex
+        {
+            get => _modeIndex;
+            set
+            {
+                if (_modeIndex != value)
+                {
+                    _modeIndex = value;
+                    Settings.Mode = (FilterMode)value;
+                    OnPropertyChanged();
+                    OnPropertyChanged(nameof(IsTemperatureMode));
+                    OnPropertyChanged(nameof(IsCustomMode));
+                }
+            }
+        }
+
+        private int _attenuationTypeIndex;
+        public int AttenuationTypeIndex
+        {
+            get => _attenuationTypeIndex;
+            set
+            {
+                if (_attenuationTypeIndex != value)
+                {
+                    _attenuationTypeIndex = value;
+                    Settings.AttenuationType = (AttenuationType)value;
+                    OnPropertyChanged();
+                }
+            }
+        }
+
+// Liste des noms des types d'atténuation
+        public List<string> AttenuationTypeNames { get; } = new List<string>(FilterSettings.AttenuationTypeNames);
+
+// Mise à jour du type d'atténuation
+        public void UpdateAttenuationType(int typeIndex)
+        {
+            if (typeIndex >= 0 && typeIndex < FilterSettings.AttenuationTypeNames.Length)
+            {
+                Settings.AttenuationType = (AttenuationType)typeIndex;
+                AttenuationTypeIndex = typeIndex;
+        
+                // Mettre à jour le statut
+                ShowTemporaryStatus($"Type d'atténuation: {FilterSettings.AttenuationTypeNames[typeIndex]}");
+            }
+        }
+
         public MainViewModel()
         {
-            // Initialiser les services
+            // Initialisation des services
             _filterService = new FilterService();
-            
-            // Initialiser les paramètres
+    
+            // Initialisation des paramètres
             _settings = new FilterSettings();
-            _settings.IsEnabled = false; // Désactivé par défaut
-            
-            _profiles = new ObservableCollection<FilterSettings>();
-            _statusText = "Filtre désactivé";
-            
-            // Définir l'indice du mode sélectionné
-            _selectedModeIndex = (int)_settings.Mode;
-            
-            // Créer les commandes
-            ToggleFilterCommand = new RelayCommand(ToggleFilter);
-            SaveProfileCommand = new RelayCommand(SaveProfile);
-            LoadProfileCommand = new RelayCommand(LoadProfile);
-            ExitCommand = new RelayCommand(Exit);
-            
-            // Configurer le timer pour la planification
-            _timer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(1) };
-            _timer.Tick += Timer_Tick;
-            _timer.Start();
-            
-            // Mettre à jour l'état initial
+    
+            // Initialiser les index des ComboBox
+            _modeIndex = (int)_settings.Mode;
+            _attenuationTypeIndex = (int)_settings.AttenuationType;
+    
+            // Mise à jour de la couleur d'aperçu
+            UpdatePreviewColor();
+    
+            // Création des commandes
+            ToggleFilterCommand = new RelayCommand(ExecuteToggleFilter);
+            ApplyChangesCommand = new RelayCommand(ExecuteApplyChanges);
+            RestoreScreenCommand = new RelayCommand(ExecuteRestoreScreen);
+            ExitCommand = new RelayCommand(ExecuteExit);
+            SelectPresetColorCommand = new RelayCommand<Color>(ExecuteSelectPresetColor);
+    
+            // Timer pour les messages de statut
+            _statusTimer = new DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(5)
+            };
+            _statusTimer.Tick += (s, e) => {
+                _statusTimer.Stop();
+                UpdateStatusText();
+            };
+    
+            // État initial
             UpdateStatusText();
         }
         
-        public void UpdateCustomColor(Color color)
+        // Met à jour la couleur d'aperçu basée sur les multiplicateurs actuels
+        public void UpdatePreviewColor()
         {
-            _customColor = color;
-            OnPropertyChanged(nameof(CustomColor));
-            
-            // Convertir la couleur en multiplicateurs RGB
-            UpdateCustomColorMultipliers(color);
-            
-            // Appliquer le filtre
-            ApplyFilter();
-        }
-        
-        private void UpdateCustomColorMultipliers(Color color)
-        {
-            // Normaliser les valeurs entre 0 et 1
-            Settings.RedMultiplier = Math.Max(0.1, color.R / 255.0);
-            Settings.GreenMultiplier = Math.Max(0.1, color.G / 255.0);
-            Settings.BlueMultiplier = Math.Max(0.1, color.B / 255.0);
-    
-            OnPropertyChanged(nameof(Settings));
-    
-            // Mettre à jour la couleur d'aperçu
-            UpdatePreviewColor();
-        }
-
-        private void UpdatePreviewColor()
-        {
-            // Créer une couleur à partir des multiplicateurs
             PreviewColor = Color.FromRgb(
                 (byte)(Settings.RedMultiplier * 255),
                 (byte)(Settings.GreenMultiplier * 255),
@@ -206,123 +168,112 @@ namespace FoxyBlueLight.ViewModels
             );
         }
         
-        public void UpdateFilterMode()
+        // Met à jour les multiplicateurs RGB basés sur une couleur donnée
+        public void UpdateFromColor(Color color)
         {
-            Settings.Mode = (FilterMode)SelectedModeIndex;
-            OnPropertyChanged(nameof(IsTemperatureMode));
-            OnPropertyChanged(nameof(IsCustomMode));
+            Settings.RedMultiplier = Math.Max(0.1, color.R / 255.0);
+            Settings.GreenMultiplier = Math.Max(0.1, color.G / 255.0);
+            Settings.BlueMultiplier = Math.Max(0.1, color.B / 255.0);
+            
+            // Mettre à jour la couleur d'aperçu
+            UpdatePreviewColor();
+            
+            // Appliquer les changements
             ApplyFilter();
         }
         
+        // Met à jour le texte de statut
+        private void UpdateStatusText()
+        {
+            StatusText = Settings.IsEnabled
+                ? $"Filtre actif - Mode: {FilterSettings.ModeNames[(int)Settings.Mode]}"
+                : "Filtre désactivé";
+        }
+        
+        // Affiche un message temporaire
+        private void ShowTemporaryStatus(string message)
+        {
+            StatusText = message;
+            _statusTimer.Stop();
+            _statusTimer.Start();
+        }
+        
+        // Commande: Active/désactive le filtre
+        private void ExecuteToggleFilter()
+        {
+            Settings.IsEnabled = !Settings.IsEnabled;
+            
+            ShowTemporaryStatus(Settings.IsEnabled ? 
+                "Filtre activé" : 
+                "Filtre désactivé");
+                
+            ApplyFilter();
+        }
+        
+        // Commande: Applique les changements actuels
+        private void ExecuteApplyChanges()
+        {
+            ApplyFilter();
+            ShowTemporaryStatus("Changements appliqués");
+        }
+        
+        // Commande: Restaure l'écran
+        private void ExecuteRestoreScreen()
+        {
+            Settings.IsEnabled = false;
+            ApplyFilter();
+            RestoreScreen.RestoreNormalColors();
+        }
+        
+        // Commande: Quitte l'application
+        private void ExecuteExit()
+        {
+            Cleanup();
+            Application.Current.Shutdown();
+        }
+        
+        // Commande: Sélectionne une couleur prédéfinie
+        private void ExecuteSelectPresetColor(Color color)
+        {
+            // Passer au mode Custom
+            Settings.Mode = FilterMode.Custom;
+            OnPropertyChanged(nameof(IsCustomMode));
+            
+            // Mettre à jour les multiplicateurs et appliquer
+            UpdateFromColor(color);
+            
+            ShowTemporaryStatus("Couleur personnalisée appliquée");
+        }
+        
+        // Applique le filtre en fonction des paramètres actuels
         public void ApplyFilter()
         {
             _filterService.Apply(Settings);
             UpdateStatusText();
         }
         
-        public void ToggleFilter()
+        // Met à jour le mode de filtre
+        public void UpdateFilterMode(int modeIndex)
         {
-            Settings.IsEnabled = !Settings.IsEnabled;
-            ApplyFilter();
-        }
-        
-        private void SaveProfile()
-        {
-            // Créer un nouveau profil
-            var newProfile = new FilterSettings
+            if (modeIndex >= 0 && modeIndex < FilterSettings.ModeNames.Length)
             {
-                ColorTemperature = Settings.ColorTemperature,
-                Intensity = Settings.Intensity,
-                Brightness = Settings.Brightness,
-                RedMultiplier = Settings.RedMultiplier,
-                GreenMultiplier = Settings.GreenMultiplier,
-                BlueMultiplier = Settings.BlueMultiplier,
-                Mode = Settings.Mode
-            };
-            
-            Profiles.Add(newProfile);
-            SelectedProfileIndex = Profiles.Count - 1;
-        }
-        
-        private void LoadProfile()
-        {
-            if (SelectedProfileIndex >= 0 && SelectedProfileIndex < Profiles.Count)
-            {
-                var profile = Profiles[SelectedProfileIndex];
-                Settings.ColorTemperature = profile.ColorTemperature;
-                Settings.Intensity = profile.Intensity;
-                Settings.Brightness = profile.Brightness;
-                Settings.RedMultiplier = profile.RedMultiplier;
-                Settings.GreenMultiplier = profile.GreenMultiplier;
-                Settings.BlueMultiplier = profile.BlueMultiplier;
-                Settings.Mode = profile.Mode;
-                
-                // Mettre à jour l'indice du mode sélectionné
-                SelectedModeIndex = (int)Settings.Mode;
-                
+                Settings.Mode = (FilterMode)modeIndex;
+                OnPropertyChanged(nameof(IsTemperatureMode));
+                OnPropertyChanged(nameof(IsCustomMode));
                 ApplyFilter();
             }
         }
         
-        private void Timer_Tick(object sender, EventArgs e)
+        // Restauration et nettoyage
+        public void Cleanup()
         {
-            // Vérifier la planification
-            if (Settings.ScheduleType == ScheduleType.Fixed)
-            {
-                var now = DateTime.Now.TimeOfDay;
-                bool shouldBeEnabled;
-                
-                if (Settings.StartTime <= Settings.EndTime)
-                {
-                    // Période normale (ex: 20:00 - 08:00)
-                    shouldBeEnabled = now >= Settings.StartTime && now <= Settings.EndTime;
-                }
-                else
-                {
-                    // Période qui traverse minuit (ex: 22:00 - 06:00)
-                    shouldBeEnabled = now >= Settings.StartTime || now <= Settings.EndTime;
-                }
-                
-                if (Settings.IsEnabled != shouldBeEnabled)
-                {
-                    Settings.IsEnabled = shouldBeEnabled;
-                    ApplyFilter();
-                }
-            }
-        }
-        
-        private void UpdateStatusText()
-        {
-            StatusText = Settings.IsEnabled
-                ? $"Filtre actif - Mode: {FilterModeNames[(int)Settings.Mode]}"
-                : "Filtre désactivé";
-        }
-        
-        private void Exit()
-        {
+            _statusTimer.Stop();
+            
             // Désactiver le filtre
             Settings.IsEnabled = false;
             ApplyFilter();
-    
-            // Arrêter les timers
-            _timer.Stop();
-    
-            // Restauration complète et nettoyage des traces
-            RestoreScreen.RestoreNormalColors(false); // pas de message
-    
-            // Quitter l'application
-            Application.Current.Shutdown();
-        }
-
-        public void Cleanup()
-        {
-            // Arrêter les timers
-            _timer.Stop();
-    
-            // S'assurer que l'état du filtre est "désactivé" dans le registre
-            RestoreScreen.SaveFilterStateToRegistry(false);
-    
-            // Restaurer les couleurs de l'écran
+            
+            // Restauration complète
             _filterService.RestoreOriginalRamp();
         }
         
@@ -335,7 +286,7 @@ namespace FoxyBlueLight.ViewModels
         }
     }
     
-    // Classe RelayCommand simple pour les commandes
+    // Classe RelayCommand simple
     public class RelayCommand : ICommand
     {
         private readonly Action _execute;
@@ -351,6 +302,35 @@ namespace FoxyBlueLight.ViewModels
         
         public void Execute(object parameter) => _execute();
         
+        public event EventHandler CanExecuteChanged
+        {
+            add => CommandManager.RequerySuggested += value;
+            remove => CommandManager.RequerySuggested -= value;
+        }
+    }
+
+    // Classe RelayCommand avec paramètre
+    public class RelayCommand<T> : ICommand
+    {
+        private readonly Action<T> _execute;
+        private readonly Predicate<T> _canExecute;
+
+        public RelayCommand(Action<T> execute, Predicate<T> canExecute = null)
+        {
+            _execute = execute ?? throw new ArgumentNullException(nameof(execute));
+            _canExecute = canExecute;
+        }
+
+        public bool CanExecute(object parameter)
+        {
+            return _canExecute == null || _canExecute((T)parameter);
+        }
+
+        public void Execute(object parameter)
+        {
+            _execute((T)parameter);
+        }
+
         public event EventHandler CanExecuteChanged
         {
             add => CommandManager.RequerySuggested += value;

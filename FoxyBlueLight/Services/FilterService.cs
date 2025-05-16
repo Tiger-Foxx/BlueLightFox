@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Windows;
+using System.Windows.Media;
 using FoxyBlueLight.Models;
 using FoxyBlueLight.Native;
 using static FoxyBlueLight.Native.DisplayAPI;
@@ -9,23 +11,46 @@ namespace FoxyBlueLight.Services
     {
         private RAMP _originalRamp;
         private bool _hasOriginalRamp;
-        private FilterSettings _currentSettings;
+        private Window _overlayWindow;
         
         public FilterService()
         {
-            _currentSettings = new FilterSettings();
             SaveOriginalRamp();
         }
         
         public bool Apply(FilterSettings settings)
         {
-            _currentSettings = settings;
-            
             if (!settings.IsEnabled)
             {
+                // Désactiver tous les types de filtres
+                CloseOverlayWindow();
                 return RestoreOriginalRamp();
             }
             
+            // Appliquer le type d'atténuation choisi
+            switch (settings.AttenuationType)
+            {
+                case AttenuationType.GammaAdjust:
+                    CloseOverlayWindow();
+                    return ApplyGammaRamp(settings);
+                
+                case AttenuationType.ColorOverlay:
+                    RestoreOriginalRamp(); // Restaurer gamma normal
+                    return ApplyColorOverlay(settings);
+                
+                case AttenuationType.ReduceBrightness:
+                    CloseOverlayWindow();
+                    return ApplyBrightnessPreservingFilter(settings);
+                
+                default:
+                    CloseOverlayWindow();
+                    return ApplyGammaRamp(settings);
+            }
+        }
+        
+        // Méthode traditionnelle par ajustement de gamma
+        private bool ApplyGammaRamp(FilterSettings settings)
+        {
             RAMP ramp = CalculateRamp(settings);
             bool result = SetRamp(ramp);
             
@@ -35,6 +60,233 @@ namespace FoxyBlueLight.Services
             return result;
         }
         
+        // Méthode par superposition de couleur (plus douce pour les yeux)
+        private bool ApplyColorOverlay(FilterSettings settings)
+        {
+            if (_overlayWindow == null)
+            {
+                _overlayWindow = new Window
+                {
+                    WindowStyle = WindowStyle.None,
+                    AllowsTransparency = true,
+                    Background = Brushes.Transparent,
+                    Topmost = true,
+                    WindowState = WindowState.Maximized,
+                    ShowInTaskbar = false,
+                    ResizeMode = ResizeMode.NoResize
+                };
+                
+                _overlayWindow.MouseDown += (s, e) => { e.Handled = true; };
+                _overlayWindow.KeyDown += (s, e) => { e.Handled = true; };
+            }
+            
+            Color filterColor = GetFilterColorForSettings(settings);
+            double opacity = settings.Intensity * 0.5; // Réduire l'intensité pour un effet plus doux
+            
+            _overlayWindow.Background = new SolidColorBrush(Color.FromArgb(
+                (byte)(opacity * 255),
+                filterColor.R,
+                filterColor.G,
+                filterColor.B
+            ));
+            
+            if (!_overlayWindow.IsVisible)
+            {
+                _overlayWindow.Show();
+            }
+            
+            return true;
+        }
+        
+        // Méthode préservant mieux les couleurs avec réduction de luminosité ajustée
+        private bool ApplyBrightnessPreservingFilter(FilterSettings settings)
+        {
+            RAMP ramp = new RAMP
+            {
+                Red = new ushort[256],
+                Green = new ushort[256],
+                Blue = new ushort[256]
+            };
+            
+            // Calculer les multiplicateurs en fonction du mode
+            double redMultiplier = 1.0;
+            double greenMultiplier = 1.0;
+            double blueMultiplier = 1.0;
+            
+            switch (settings.Mode)
+            {
+                case FilterMode.Custom:
+                    redMultiplier = settings.RedMultiplier;
+                    greenMultiplier = settings.GreenMultiplier;
+                    blueMultiplier = settings.BlueMultiplier;
+                    break;
+                    
+                case FilterMode.Temperature:
+                    CalculateTemperatureMultipliers(settings.ColorTemperature, out redMultiplier, out greenMultiplier, out blueMultiplier);
+                    break;
+                    
+                default:
+                    GetMultipliersForMode(settings.Mode, out redMultiplier, out greenMultiplier, out blueMultiplier);
+                    break;
+            }
+            
+            // Appliquer une courbe de préservation des couleurs
+            for (int i = 0; i < 256; i++)
+            {
+                double normalizedValue = i / 255.0;
+                
+                // Formule de préservation des couleurs avec réduction de luminosité sélective
+                double adjustedRed = Math.Pow(normalizedValue, 1.0 + (1.0 - redMultiplier) * settings.Intensity);
+                double adjustedGreen = Math.Pow(normalizedValue, 1.0 + (1.0 - greenMultiplier) * settings.Intensity);
+                double adjustedBlue = Math.Pow(normalizedValue, 1.0 + (1.0 - blueMultiplier) * settings.Intensity);
+                
+                // Appliquer la luminosité
+                adjustedRed = adjustedRed * redMultiplier * settings.Brightness;
+                adjustedGreen = adjustedGreen * greenMultiplier * settings.Brightness;
+                adjustedBlue = adjustedBlue * blueMultiplier * settings.Brightness;
+                
+                // Mettre à l'échelle
+                ramp.Red[i] = (ushort)Math.Max(0, Math.Min(65535, adjustedRed * 65535.0));
+                ramp.Green[i] = (ushort)Math.Max(0, Math.Min(65535, adjustedGreen * 65535.0));
+                ramp.Blue[i] = (ushort)Math.Max(0, Math.Min(65535, adjustedBlue * 65535.0));
+            }
+            
+            bool result = SetRamp(ramp);
+            RestoreScreen.SaveFilterStateToRegistry(settings.IsEnabled);
+            
+            return result;
+        }
+        
+        // Ferme la fenêtre de superposition de couleur
+        private void CloseOverlayWindow()
+        {
+            if (_overlayWindow != null && _overlayWindow.IsVisible)
+            {
+                _overlayWindow.Hide();
+            }
+        }
+        
+        // Obtient la couleur du filtre en fonction des paramètres
+        private Color GetFilterColorForSettings(FilterSettings settings)
+        {
+            byte r, g, b;
+            
+            switch (settings.Mode)
+            {
+                case FilterMode.Temperature:
+                    GetColorForTemperature(settings.ColorTemperature, out r, out g, out b);
+                    break;
+                
+                case FilterMode.Custom:
+                    r = (byte)(settings.RedMultiplier * 255);
+                    g = (byte)(settings.GreenMultiplier * 255);
+                    b = (byte)(settings.BlueMultiplier * 255);
+                    break;
+                
+                default:
+                    GetColorForMode(settings.Mode, out r, out g, out b);
+                    break;
+            }
+            
+            return Color.FromRgb(r, g, b);
+        }
+        
+        // Calcule la couleur pour une température donnée
+        private void GetColorForTemperature(int temp, out byte r, out byte g, out byte b)
+        {
+            double red, green, blue;
+            CalculateTemperatureMultipliers(temp, out red, out green, out blue);
+            
+            r = (byte)(red * 255);
+            g = (byte)(green * 255);
+            b = (byte)(blue * 255);
+        }
+        
+        // Calcule la couleur pour un mode prédéfini
+        private void GetColorForMode(FilterMode mode, out byte r, out byte g, out byte b)
+        {
+            switch (mode)
+            {
+                case FilterMode.Warm:
+                    r = 255;
+                    g = 230;
+                    b = 179;
+                    break;
+                
+                case FilterMode.VeryWarm:
+                    r = 255;
+                    g = 213;
+                    b = 102;
+                    break;
+                
+                case FilterMode.Sepia:
+                    r = 255;
+                    g = 225;
+                    b = 153;
+                    break;
+                
+                case FilterMode.Grayscale:
+                    r = g = b = 200;
+                    break;
+                
+                case FilterMode.NightRed:
+                    r = 180;
+                    g = 0;
+                    b = 0;
+                    break;
+                
+                default:
+                    r = 255;
+                    g = 230;
+                    b = 179;
+                    break;
+            }
+        }
+        
+        // Récupère les multiplicateurs RGB pour un mode donné
+        private void GetMultipliersForMode(FilterMode mode, out double red, out double green, out double blue)
+        {
+            switch (mode)
+            {
+                case FilterMode.Warm:
+                    red = 1.0;
+                    green = 0.9;
+                    blue = 0.7;
+                    break;
+                
+                case FilterMode.VeryWarm:
+                    red = 1.0;
+                    green = 0.7;
+                    blue = 0.4;
+                    break;
+                
+                case FilterMode.Sepia:
+                    red = 1.0;
+                    green = 0.85;
+                    blue = 0.6;
+                    break;
+                
+                case FilterMode.Grayscale:
+                    red = 0.3;
+                    green = 0.59;
+                    blue = 0.11;
+                    break;
+                
+                case FilterMode.NightRed:
+                    red = 0.7;
+                    green = 0.1;
+                    blue = 0.1;
+                    break;
+                
+                default:
+                    red = 1.0;
+                    green = 0.9;
+                    blue = 0.7;
+                    break;
+            }
+        }
+        
+        // Méthode traditionnelle de calcul des rampes gamma
         private RAMP CalculateRamp(FilterSettings settings)
         {
             RAMP ramp = CreateRamp();
@@ -48,44 +300,22 @@ namespace FoxyBlueLight.Services
                 case FilterMode.Temperature:
                     CalculateTemperatureMultipliers(settings.ColorTemperature, out redMultiplier, out greenMultiplier, out blueMultiplier);
                     break;
-                case FilterMode.Warm:
-                    redMultiplier = 1.0;
-                    greenMultiplier = 0.9;
-                    blueMultiplier = 0.7;
-                    break;
-                case FilterMode.VeryWarm:
-                    redMultiplier = 1.0;
-                    greenMultiplier = 0.7;
-                    blueMultiplier = 0.4;
-                    break;
-                case FilterMode.Sepia:
-                    redMultiplier = 1.0;
-                    greenMultiplier = 0.85;
-                    blueMultiplier = 0.6;
-                    break;
-                case FilterMode.Grayscale:
-                    redMultiplier = 0.299;
-                    greenMultiplier = 0.587;
-                    blueMultiplier = 0.114;
-                    break;
-                case FilterMode.PureRed:
-                    redMultiplier = 0.5;
-                    greenMultiplier = 0.0;
-                    blueMultiplier = 0.0;
-                    break;
                 case FilterMode.Custom:
                     redMultiplier = settings.RedMultiplier;
                     greenMultiplier = settings.GreenMultiplier;
                     blueMultiplier = settings.BlueMultiplier;
                     break;
+                default:
+                    GetMultipliersForMode(settings.Mode, out redMultiplier, out greenMultiplier, out blueMultiplier);
+                    break;
             }
             
             // Appliquer l'intensité du filtre
-            redMultiplier = 1 - ((1 - redMultiplier) * settings.Intensity);
-            greenMultiplier = 1 - ((1 - greenMultiplier) * settings.Intensity);
-            blueMultiplier = 1 - ((1 - blueMultiplier) * settings.Intensity);
+            redMultiplier = 1.0 - (settings.Intensity * (1.0 - redMultiplier));
+            greenMultiplier = 1.0 - (settings.Intensity * (1.0 - greenMultiplier));
+            blueMultiplier = 1.0 - (settings.Intensity * (1.0 - blueMultiplier));
             
-            // Appliquer la luminosité (software dimming)
+            // Appliquer la luminosité
             redMultiplier *= settings.Brightness;
             greenMultiplier *= settings.Brightness;
             blueMultiplier *= settings.Brightness;
@@ -139,8 +369,22 @@ namespace FoxyBlueLight.Services
         
         public bool RestoreOriginalRamp()
         {
-            if (!_hasOriginalRamp) return false;
-            return SetRamp(_originalRamp);
+            if (!_hasOriginalRamp)
+                return false;
+                
+            bool result = SetRamp(_originalRamp);
+            
+            // Force refresh
+            try
+            {
+                SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, null, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
+            }
+            catch
+            {
+                // Silencieux en cas d'échec
+            }
+            
+            return result;
         }
     }
 }

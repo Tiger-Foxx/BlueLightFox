@@ -5,10 +5,11 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:tb="http://www.hardcodet.net/taskbar"
         xmlns:local="clr-namespace:FoxyBlueLight"
+        xmlns:views="clr-namespace:FoxyBlueLight.Views"
         xmlns:viewModels="clr-namespace:FoxyBlueLight.ViewModels"
         mc:Ignorable="d"
         Title="Foxy Light Filter" 
-        Height="400" Width="300"
+        Height="500" Width="340"
         WindowStyle="None" 
         AllowsTransparency="True"
         Background="Transparent"
@@ -19,127 +20,29 @@
     <Window.DataContext>
         <viewModels:MainViewModel/>
     </Window.DataContext>
-    
+
     <Window.Resources>
-        <!-- Style pour les boutons de contrôle -->
-        <Style x:Key="ControlButton" TargetType="Button">
-            <Setter Property="Width" Value="28"/>
-            <Setter Property="Height" Value="28"/>
-            <Setter Property="Background" Value="Transparent"/>
-            <Setter Property="BorderThickness" Value="0"/>
-            <Setter Property="Cursor" Value="Hand"/>
-            <Setter Property="Margin" Value="4,0,0,0"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Button">
-                        <Border CornerRadius="14" Background="{TemplateBinding Background}">
-                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                        </Border>
-                        <ControlTemplate.Triggers>
-                            <Trigger Property="IsMouseOver" Value="True">
-                                <Setter Property="Background" Value="#22FFFFFF"/>
-                            </Trigger>
-                            <Trigger Property="IsPressed" Value="True">
-                                <Setter Property="Background" Value="#33FFFFFF"/>
-                            </Trigger>
-                        </ControlTemplate.Triggers>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        
-        <!-- Style pour les slider super modernes -->
-        <Style x:Key="ModernSlider" TargetType="Slider">
-            <Setter Property="Foreground" Value="#FFFFFF"/>
-            <Setter Property="Background" Value="#222222"/>
-            <Setter Property="Margin" Value="0,5"/>
-            <Setter Property="Template">
-                <Setter.Value>
-                    <ControlTemplate TargetType="Slider">
-                        <Grid>
-                            <!-- Track background -->
-                            <Border Height="3" CornerRadius="1.5" Background="#22FFFFFF" Margin="7,0"/>
-                            <!-- Track -->
-                            <Track x:Name="PART_Track">
-                                <Track.DecreaseRepeatButton>
-                                    <RepeatButton Command="Slider.DecreaseLarge">
-                                        <RepeatButton.Template>
-                                            <ControlTemplate TargetType="RepeatButton">
-                                                <Border Height="3" CornerRadius="1.5" Background="{TemplateBinding Background}"/>
-                                            </ControlTemplate>
-                                        </RepeatButton.Template>
-                                        <RepeatButton.Background>
-                                            <LinearGradientBrush StartPoint="0,0" EndPoint="1,0">
-                                                <GradientStop Color="#FFFFFF" Offset="0"/>
-                                                <GradientStop Color="#D4D4D4" Offset="1"/>
-                                            </LinearGradientBrush>
-                                        </RepeatButton.Background>
-                                    </RepeatButton>
-                                </Track.DecreaseRepeatButton>
-                                <Track.IncreaseRepeatButton>
-                                    <RepeatButton Command="Slider.IncreaseLarge">
-                                        <RepeatButton.Template>
-                                            <ControlTemplate TargetType="RepeatButton">
-                                                <Border Background="Transparent"/>
-                                            </ControlTemplate>
-                                        </RepeatButton.Template>
-                                    </RepeatButton>
-                                </Track.IncreaseRepeatButton>
-                                <Track.Thumb>
-                                    <Thumb>
-                                        <Thumb.Template>
-                                            <ControlTemplate TargetType="Thumb">
-                                                <Grid>
-                                                    <Ellipse Width="14" Height="14" Fill="White">
-                                                        <Ellipse.Effect>
-                                                            <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
-                                                        </Ellipse.Effect>
-                                                    </Ellipse>
-                                                </Grid>
-                                            </ControlTemplate>
-                                        </Thumb.Template>
-                                    </Thumb>
-                                </Track.Thumb>
-                            </Track>
-                        </Grid>
-                    </ControlTemplate>
-                </Setter.Value>
-            </Setter>
-        </Style>
-        
-        <!-- Style pour les textes -->
-        <Style x:Key="SliderLabel" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#CCFFFFFF"/>
-            <Setter Property="FontSize" Value="12"/>
-            <Setter Property="FontWeight" Value="Medium"/>
-            <Setter Property="Margin" Value="0,12,0,2"/>
-        </Style>
-        
-        <!-- Style pour le texte de valeur -->
-        <Style x:Key="ValueText" TargetType="TextBlock">
-            <Setter Property="Foreground" Value="#FFFFFF"/>
-            <Setter Property="FontWeight" Value="SemiBold"/>
-            <Setter Property="FontSize" Value="12"/>
-        </Style>
+        <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
     </Window.Resources>
     
     <!-- Surface pour déplacer la fenêtre -->
     <Grid MouseLeftButtonDown="Grid_MouseDown">
-        <!-- Fond noir avec effet Acrylic (flou/transparent) -->
-        <Border CornerRadius="16" x:Name="MainBackground">
+        <!-- Fond avec effet Acrylic -->
+        <Border CornerRadius="20" x:Name="MainBackground">
             <Border.Background>
-                <SolidColorBrush Color="#232323" Opacity="0.85"/>
+                <SolidColorBrush Color="#151515" Opacity="{Binding Settings.Opacity}"/>
             </Border.Background>
             <Border.Effect>
-                <DropShadowEffect BlurRadius="15" ShadowDepth="2" Opacity="0.4" Color="Black"/>
+                <DropShadowEffect BlurRadius="15" ShadowDepth="3" Opacity="0.5" Color="Black"/>
             </Border.Effect>
         </Border>
         
         <!-- Contenu principal -->
-        <Grid Margin="16">
+        <Grid Margin="20">
             <Grid.RowDefinitions>
                 <RowDefinition Height="Auto"/> <!-- Titre et boutons -->
                 <RowDefinition Height="*"/> <!-- Contenu principal -->
+                <RowDefinition Height="Auto"/> <!-- Barre de statut -->
             </Grid.RowDefinitions>
             
             <!-- Titre et boutons de contrôle -->
@@ -149,32 +52,37 @@
                     <ColumnDefinition Width="Auto"/>
                 </Grid.ColumnDefinitions>
                 
-                <!-- Titre -->
+                <!-- Titre avec logo -->
                 <StackPanel Orientation="Horizontal">
+                    <Image Source="/Resources/logo.png" Width="22" Height="22" Margin="0,0,10,0"/>
                     <TextBlock Text="FOXY LIGHT FILTER" 
                            FontWeight="SemiBold" 
-                           FontSize="14" 
-                           Foreground="#FFFFFF" 
+                           FontSize="16" 
+                           Foreground="White"
                            VerticalAlignment="Center"/>
                 </StackPanel>
                 
                 <!-- Boutons de contrôle -->
                 <StackPanel Grid.Column="1" Orientation="Horizontal" HorizontalAlignment="Right">
-                    <Button Style="{StaticResource ControlButton}" Click="MinimizeButton_Click">
-                        <Path Data="M19,13H5V11H19V13Z" Fill="White" Stretch="Uniform" Width="10"/>
+                    <Button Width="30" Height="30" Background="Transparent" BorderThickness="0" 
+                            Click="MinimizeButton_Click" Cursor="Hand">
+                        <Path Data="M19,13H5V11H19V13Z" Fill="White" Stretch="Uniform" Width="12"/>
                     </Button>
-                    <Button Style="{StaticResource ControlButton}" Click="CloseButton_Click">
+                    <Button Width="30" Height="30" Background="Transparent" BorderThickness="0"
+                            Click="CloseButton_Click" Cursor="Hand">
                         <Path Data="M19,6.41L17.59,5L12,10.59L6.41,5L5,6.41L10.59,12L5,17.59L6.41,19L12,13.41L17.59,19L19,17.59L13.41,12L19,6.41Z" 
-                              Fill="White" Stretch="Uniform" Width="10"/>
+                              Fill="White" Stretch="Uniform" Width="12"/>
                     </Button>
                 </StackPanel>
             </Grid>
             
             <!-- Contenu principal -->
-            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden">
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Auto" Margin="0,5,0,0"
+                         HorizontalScrollBarVisibility="Hidden"
+                         Template="{StaticResource DarkScrollViewerControlTemplate}">
                 <StackPanel>
-                    <!-- Interrupteur ON/OFF principal -->
-                    <Grid Margin="0,0,0,15">
+                    <!-- Interrupteur principal ON/OFF -->
+                    <Grid Margin="0,5,0,15">
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
@@ -182,21 +90,23 @@
                         
                         <TextBlock Text="PROTECTION DES YEUX" 
                                Foreground="White" 
-                               FontWeight="SemiBold"
+                               FontSize="14"
+                               FontWeight="Medium"
                                VerticalAlignment="Center"/>
                         
                         <!-- Grand switch stylisé -->
-                        <Border Grid.Column="1" Width="50" Height="28" 
+                        <Border Grid.Column="1" Width="52" Height="28" 
                             CornerRadius="14"
-                            Background="{Binding Settings.IsEnabled, Converter={StaticResource BoolToColorConverter}}"
-                            MouseDown="ToggleSwitch_MouseDown"
-                            Cursor="Hand">
+                            Background="#333333" 
+                            x:Name="ToggleBackground"
+                            Cursor="Hand"
+                            MouseDown="ToggleSwitch_MouseDown">
                             <Canvas>
                                 <Ellipse Width="24" Height="24" 
-                                         Fill="White"
-                                         Canvas.Top="2"
-                                         Canvas.Left="0"
-                                         x:Name="SwitchThumb">
+                                     Fill="White"
+                                     Canvas.Top="2"
+                                     Canvas.Left="2"
+                                     x:Name="SwitchThumb">
                                     <Ellipse.Effect>
                                         <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
                                     </Ellipse.Effect>
@@ -205,197 +115,254 @@
                         </Border>
                     </Grid>
                     
-                    <!-- Color Picker Simplifié -->
-                    <StackPanel Margin="0,0,0,15" Visibility="{Binding IsCustomMode, Converter={StaticResource BoolToVisibilityConverter}}">
-                        <TextBlock Text="COULEUR PERSONNALISÉE" Style="{StaticResource SliderLabel}"/>
+                    <!-- Séparateur -->
+                    <Border Height="1" Background="#333333" Margin="0,0,0,15"/>
+                    
+                    <!-- Mode sélection -->
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
                         
-                        <!-- RGB Sliders -->
-                        <Grid>
+                        <TextBlock Text="MODE" 
+                                  Foreground="White" 
+                                  FontSize="13"
+                                  FontWeight="Medium"
+                                  VerticalAlignment="Center"/>
+                        
+                        <ComboBox Grid.Column="1" 
+                                Width="150"
+                                ItemsSource="{Binding FilterModeNames}"
+                                SelectedIndex="{Binding ModeIndex, Mode=TwoWay}"
+                                Background="#222222"
+                                Foreground="White"
+                                BorderThickness="1"
+                                BorderBrush="#444444"
+                                SelectionChanged="ModeComboBox_SelectionChanged">
+                        </ComboBox>
+                    </Grid>
+                    
+                    <!-- Type d'atténuation -->
+                    <Grid Margin="0,0,0,15">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBlock Text="TYPE D'ATTÉNUATION" 
+                                  Foreground="White" 
+                                  FontSize="13"
+                                  FontWeight="Medium"
+                                  VerticalAlignment="Center"/>
+                        
+                        <ComboBox Grid.Column="1" 
+                                Width="150"
+                                ItemsSource="{Binding AttenuationTypeNames}"
+                                SelectedIndex="{Binding AttenuationTypeIndex, Mode=TwoWay}"
+                                Background="#222222"
+                                Foreground="White"
+                                BorderThickness="1"
+                                BorderBrush="#444444"
+                                SelectionChanged="AttenuationComboBox_SelectionChanged">
+                        </ComboBox>
+                    </Grid>
+                    
+                    <!-- Palette de couleurs - Visible uniquement en mode personnalisé -->
+                    <StackPanel Visibility="{Binding IsCustomMode, Converter={StaticResource BoolToVisConverter}}">
+                        <TextBlock Text="COULEURS PRÉDÉFINIES" 
+                                 Foreground="White" 
+                                 FontSize="13"
+                                 FontWeight="Medium"
+                                 Margin="0,0,0,5"/>
+                        
+                        <WrapPanel HorizontalAlignment="Center" Margin="0,5,0,15">
+                            <!-- Boutons de couleurs prédéfinies -->
+                            <Button Width="36" Height="36" Margin="4" 
+                                   Background="#FFE3B9" 
+                                   BorderThickness="0"
+                                   Command="{Binding SelectPresetColorCommand}" 
+                                   CommandParameter="#FFE3B9">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid>
+                                            <Ellipse Fill="{TemplateBinding Background}"/>
+                                            <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            
+                            <Button Width="36" Height="36" Margin="4" 
+                                   Background="#FFD689" 
+                                   BorderThickness="0"
+                                   Command="{Binding SelectPresetColorCommand}" 
+                                   CommandParameter="#FFD689">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid>
+                                            <Ellipse Fill="{TemplateBinding Background}"/>
+                                            <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            
+                            <Button Width="36" Height="36" Margin="4" 
+                                   Background="#FFECB3" 
+                                   BorderThickness="0"
+                                   Command="{Binding SelectPresetColorCommand}" 
+                                   CommandParameter="#FFECB3">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid>
+                                            <Ellipse Fill="{TemplateBinding Background}"/>
+                                            <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                            
+                            <Button Width="36" Height="36" Margin="4" 
+                                   Background="#E0F2F1" 
+                                   BorderThickness="0"
+                                   Command="{Binding SelectPresetColorCommand}" 
+                                   CommandParameter="#E0F2F1">
+                                <Button.Template>
+                                    <ControlTemplate TargetType="Button">
+                                        <Grid>
+                                            <Ellipse Fill="{TemplateBinding Background}"/>
+                                            <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                                        </Grid>
+                                        <ControlTemplate.Triggers>
+                                            <Trigger Property="IsMouseOver" Value="True">
+                                                <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                                            </Trigger>
+                                        </ControlTemplate.Triggers>
+                                    </ControlTemplate>
+                                </Button.Template>
+                            </Button>
+                        </WrapPanel>
+                    </StackPanel>
+                    
+                    <!-- Contrôles RGB (visible uniquement en mode personnalisé) -->
+                    <StackPanel Visibility="{Binding IsCustomMode, Converter={StaticResource BoolToVisConverter}}">
+                        <!-- Rouge -->
+                        <Grid Margin="0,0,0,8">
                             <Grid.RowDefinitions>
                                 <RowDefinition Height="Auto"/>
                                 <RowDefinition Height="Auto"/>
-                                <RowDefinition Height="Auto"/>
                             </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
                             
-                            <!-- Rouge -->
-                            <StackPanel Grid.Row="0">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <TextBlock Grid.Column="0" Text="Rouge" Foreground="#FFCCCC"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Settings.RedMultiplier, StringFormat='{}{0:P0}'}" Foreground="#FFCCCC"/>
-                                </Grid>
-                                <Slider Style="{StaticResource ModernSlider}" Minimum="0" Maximum="1" 
-                                    Value="{Binding Settings.RedMultiplier}" ValueChanged="ColorSlider_ValueChanged">
-                                    <Slider.Template>
-                                        <ControlTemplate TargetType="Slider">
-                                            <Grid>
-                                                <Border Height="3" CornerRadius="1.5" Background="#22FFFFFF" Margin="7,0"/>
-                                                <Track x:Name="PART_Track">
-                                                    <Track.DecreaseRepeatButton>
-                                                        <RepeatButton Command="Slider.DecreaseLarge">
-                                                            <RepeatButton.Template>
-                                                                <ControlTemplate TargetType="RepeatButton">
-                                                                    <Border Height="3" CornerRadius="1.5" Background="#FFCCCC"/>
-                                                                </ControlTemplate>
-                                                            </RepeatButton.Template>
-                                                        </RepeatButton>
-                                                    </Track.DecreaseRepeatButton>
-                                                    <Track.IncreaseRepeatButton>
-                                                        <RepeatButton Command="Slider.IncreaseLarge">
-                                                            <RepeatButton.Template>
-                                                                <ControlTemplate TargetType="RepeatButton">
-                                                                    <Border Background="Transparent"/>
-                                                                </ControlTemplate>
-                                                            </RepeatButton.Template>
-                                                        </RepeatButton>
-                                                    </Track.IncreaseRepeatButton>
-                                                    <Track.Thumb>
-                                                        <Thumb>
-                                                            <Thumb.Template>
-                                                                <ControlTemplate TargetType="Thumb">
-                                                                    <Ellipse Width="14" Height="14" Fill="White">
-                                                                        <Ellipse.Effect>
-                                                                            <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
-                                                                        </Ellipse.Effect>
-                                                                    </Ellipse>
-                                                                </ControlTemplate>
-                                                            </Thumb.Template>
-                                                        </Thumb>
-                                                    </Track.Thumb>
-                                                </Track>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Slider.Template>
-                                </Slider>
-                            </StackPanel>
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="ROUGE" 
+                                     Foreground="#FFBBBB" 
+                                     FontSize="13"
+                                     FontWeight="Medium"/>
+                                     
+                            <TextBlock Grid.Row="0" Grid.Column="1" 
+                                     Foreground="#FFBBBB"
+                                     FontWeight="Medium"
+                                     FontSize="13"
+                                     Text="{Binding Settings.RedMultiplier, StringFormat='{}{0:P0}'}"/>
                             
-                            <!-- Vert -->
-                            <StackPanel Grid.Row="1" Margin="0,10,0,0">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <TextBlock Grid.Column="0" Text="Vert" Foreground="#CCFFCC"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Settings.GreenMultiplier, StringFormat='{}{0:P0}'}" Foreground="#CCFFCC"/>
-                                </Grid>
-                                <Slider Style="{StaticResource ModernSlider}" Minimum="0" Maximum="1" 
-                                    Value="{Binding Settings.GreenMultiplier}" ValueChanged="ColorSlider_ValueChanged">
-                                    <Slider.Template>
-                                        <ControlTemplate TargetType="Slider">
-                                            <Grid>
-                                                <Border Height="3" CornerRadius="1.5" Background="#22FFFFFF" Margin="7,0"/>
-                                                <Track x:Name="PART_Track">
-                                                    <Track.DecreaseRepeatButton>
-                                                        <RepeatButton Command="Slider.DecreaseLarge">
-                                                            <RepeatButton.Template>
-                                                                <ControlTemplate TargetType="RepeatButton">
-                                                                    <Border Height="3" CornerRadius="1.5" Background="#CCFFCC"/>
-                                                                </ControlTemplate>
-                                                            </RepeatButton.Template>
-                                                        </RepeatButton>
-                                                    </Track.DecreaseRepeatButton>
-                                                    <Track.IncreaseRepeatButton>
-                                                        <RepeatButton Command="Slider.IncreaseLarge">
-                                                            <RepeatButton.Template>
-                                                                <ControlTemplate TargetType="RepeatButton">
-                                                                    <Border Background="Transparent"/>
-                                                                </ControlTemplate>
-                                                            </RepeatButton.Template>
-                                                        </RepeatButton>
-                                                    </Track.IncreaseRepeatButton>
-                                                    <Track.Thumb>
-                                                        <Thumb>
-                                                            <Thumb.Template>
-                                                                <ControlTemplate TargetType="Thumb">
-                                                                    <Ellipse Width="14" Height="14" Fill="White">
-                                                                        <Ellipse.Effect>
-                                                                            <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
-                                                                        </Ellipse.Effect>
-                                                                    </Ellipse>
-                                                                </ControlTemplate>
-                                                            </Thumb.Template>
-                                                        </Thumb>
-                                                    </Track.Thumb>
-                                                </Track>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Slider.Template>
-                                </Slider>
-                            </StackPanel>
-                            
-                            <!-- Bleu -->
-                            <StackPanel Grid.Row="2" Margin="0,10,0,0">
-                                <Grid>
-                                    <Grid.ColumnDefinitions>
-                                        <ColumnDefinition Width="*"/>
-                                        <ColumnDefinition Width="Auto"/>
-                                    </Grid.ColumnDefinitions>
-                                    
-                                    <TextBlock Grid.Column="0" Text="Bleu" Foreground="#CCCCFF"/>
-                                    <TextBlock Grid.Column="1" Text="{Binding Settings.BlueMultiplier, StringFormat='{}{0:P0}'}" Foreground="#CCCCFF"/>
-                                </Grid>
-                                <Slider Style="{StaticResource ModernSlider}" Minimum="0" Maximum="1" 
-                                    Value="{Binding Settings.BlueMultiplier}" ValueChanged="ColorSlider_ValueChanged">
-                                    <Slider.Template>
-                                        <ControlTemplate TargetType="Slider">
-                                            <Grid>
-                                                <Border Height="3" CornerRadius="1.5" Background="#22FFFFFF" Margin="7,0"/>
-                                                <Track x:Name="PART_Track">
-                                                    <Track.DecreaseRepeatButton>
-                                                        <RepeatButton Command="Slider.DecreaseLarge">
-                                                            <RepeatButton.Template>
-                                                                <ControlTemplate TargetType="RepeatButton">
-                                                                    <Border Height="3" CornerRadius="1.5" Background="#CCCCFF"/>
-                                                                </ControlTemplate>
-                                                            </RepeatButton.Template>
-                                                        </RepeatButton>
-                                                    </Track.DecreaseRepeatButton>
-                                                    <Track.IncreaseRepeatButton>
-                                                        <RepeatButton Command="Slider.IncreaseLarge">
-                                                            <RepeatButton.Template>
-                                                                <ControlTemplate TargetType="RepeatButton">
-                                                                    <Border Background="Transparent"/>
-                                                                </ControlTemplate>
-                                                            </RepeatButton.Template>
-                                                        </RepeatButton>
-                                                    </Track.IncreaseRepeatButton>
-                                                    <Track.Thumb>
-                                                        <Thumb>
-                                                            <Thumb.Template>
-                                                                <ControlTemplate TargetType="Thumb">
-                                                                    <Ellipse Width="14" Height="14" Fill="White">
-                                                                        <Ellipse.Effect>
-                                                                            <DropShadowEffect BlurRadius="4" ShadowDepth="1" Opacity="0.3"/>
-                                                                        </Ellipse.Effect>
-                                                                    </Ellipse>
-                                                                </ControlTemplate>
-                                                            </Thumb.Template>
-                                                        </Thumb>
-                                                    </Track.Thumb>
-                                                </Track>
-                                            </Grid>
-                                        </ControlTemplate>
-                                    </Slider.Template>
-                                </Slider>
-                            </StackPanel>
+                            <Slider Grid.Row="1" Grid.ColumnSpan="2"
+                                  Margin="0,5"
+                                  Minimum="0" Maximum="1" 
+                                  SmallChange="0.01" LargeChange="0.1"
+                                  Value="{Binding Settings.RedMultiplier}"
+                                  ValueChanged="RGBSlider_ValueChanged"/>
                         </Grid>
                         
-                        <!-- Prévisualisation de couleur -->
-                        <Border Height="30" CornerRadius="4" Margin="0,10,0,0">
+                        <!-- Vert -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="VERT" 
+                                     Foreground="#BBFFBB" 
+                                     FontSize="13"
+                                     FontWeight="Medium"/>
+                                     
+                            <TextBlock Grid.Row="0" Grid.Column="1" 
+                                     Foreground="#BBFFBB"
+                                     FontWeight="Medium"
+                                     FontSize="13"
+                                     Text="{Binding Settings.GreenMultiplier, StringFormat='{}{0:P0}'}"/>
+                            
+                            <Slider Grid.Row="1" Grid.ColumnSpan="2"
+                                  Margin="0,5"
+                                  Minimum="0" Maximum="1" 
+                                  SmallChange="0.01" LargeChange="0.1"
+                                  Value="{Binding Settings.GreenMultiplier}"
+                                  ValueChanged="RGBSlider_ValueChanged"/>
+                        </Grid>
+                        
+                        <!-- Bleu -->
+                        <Grid Margin="0,0,0,8">
+                            <Grid.RowDefinitions>
+                                <RowDefinition Height="Auto"/>
+                                <RowDefinition Height="Auto"/>
+                            </Grid.RowDefinitions>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="Auto"/>
+                            </Grid.ColumnDefinitions>
+                            
+                            <TextBlock Grid.Row="0" Grid.Column="0" Text="BLEU" 
+                                     Foreground="#BBBBFF" 
+                                     FontSize="13"
+                                     FontWeight="Medium"/>
+                                     
+                            <TextBlock Grid.Row="0" Grid.Column="1" 
+                                     Foreground="#BBBBFF"
+                                     FontWeight="Medium"
+                                     FontSize="13"
+                                     Text="{Binding Settings.BlueMultiplier, StringFormat='{}{0:P0}'}"/>
+                            
+                            <Slider Grid.Row="1" Grid.ColumnSpan="2"
+                                  Margin="0,5"
+                                  Minimum="0" Maximum="1" 
+                                  SmallChange="0.01" LargeChange="0.1"
+                                  Value="{Binding Settings.BlueMultiplier}"
+                                  ValueChanged="RGBSlider_ValueChanged"/>
+                        </Grid>
+                        
+                        <!-- Aperçu de la couleur -->
+                        <Border Height="30" CornerRadius="4" Margin="0,5,0,15">
                             <Border.Background>
                                 <SolidColorBrush Color="{Binding PreviewColor}"/>
                             </Border.Background>
                         </Border>
                     </StackPanel>
                     
-                    <!-- Température -->
-                    <Grid Margin="0,0,0,8">
+                    <!-- Température (visible uniquement en mode température) -->
+                    <Grid Visibility="{Binding IsTemperatureMode, Converter={StaticResource BoolToVisConverter}}"
+                          Margin="0,0,0,15">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -405,20 +372,27 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="TEMPÉRATURE" Style="{StaticResource SliderLabel}"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource ValueText}"
-                               Text="{Binding Settings.ColorTemperature, StringFormat='{}{0:N0}K'}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="TEMPÉRATURE"
+                                 Foreground="White" 
+                                 FontSize="13"
+                                 FontWeight="Medium"/>
+                                 
+                        <TextBlock Grid.Row="0" Grid.Column="1" 
+                                 Foreground="White"
+                                 FontWeight="Medium"
+                                 FontSize="13"
+                                 Text="{Binding Settings.ColorTemperature, StringFormat='{}{0:N0}K'}"/>
                         
                         <Slider Grid.Row="1" Grid.ColumnSpan="2"
-                            Style="{StaticResource ModernSlider}"
-                            Minimum="1900" Maximum="6500" 
-                            SmallChange="100" LargeChange="500"
-                            Value="{Binding Settings.ColorTemperature}"
-                            ValueChanged="Slider_ValueChanged"/>
+                              Margin="0,5"
+                              Minimum="1900" Maximum="6500" 
+                              SmallChange="100" LargeChange="500"
+                              Value="{Binding Settings.ColorTemperature}"
+                              ValueChanged="ParamSlider_ValueChanged"/>
                     </Grid>
                     
                     <!-- Intensité -->
-                    <Grid Margin="0,0,0,8">
+                    <Grid Margin="0,0,0,15">
                         <Grid.RowDefinitions>
                             <RowDefinition Height="Auto"/>
                             <RowDefinition Height="Auto"/>
@@ -428,16 +402,23 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="INTENSITÉ" Style="{StaticResource SliderLabel}"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource ValueText}"
-                               Text="{Binding Settings.Intensity, StringFormat='{}{0:P0}'}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="INTENSITÉ"
+                                 Foreground="White" 
+                                 FontSize="13"
+                                 FontWeight="Medium"/>
+                                 
+                        <TextBlock Grid.Row="0" Grid.Column="1" 
+                                 Foreground="White"
+                                 FontWeight="Medium"
+                                 FontSize="13"
+                                 Text="{Binding Settings.Intensity, StringFormat='{}{0:P0}'}"/>
                         
                         <Slider Grid.Row="1" Grid.ColumnSpan="2"
-                            Style="{StaticResource ModernSlider}"
-                            Minimum="0" Maximum="1" 
-                            SmallChange="0.01" LargeChange="0.1"
-                            Value="{Binding Settings.Intensity}"
-                            ValueChanged="Slider_ValueChanged"/>
+                              Margin="0,5"
+                              Minimum="0" Maximum="1" 
+                              SmallChange="0.01" LargeChange="0.1"
+                              Value="{Binding Settings.Intensity}"
+                              ValueChanged="ParamSlider_ValueChanged"/>
                     </Grid>
                     
                     <!-- Luminosité -->
@@ -451,107 +432,183 @@
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         
-                        <TextBlock Grid.Row="0" Grid.Column="0" Text="LUMINOSITÉ" Style="{StaticResource SliderLabel}"/>
-                        <TextBlock Grid.Row="0" Grid.Column="1" Style="{StaticResource ValueText}"
-                               Text="{Binding Settings.Brightness, StringFormat='{}{0:P0}'}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="LUMINOSITÉ" 
+                                 Foreground="White" 
+                                 FontSize="13"
+                                 FontWeight="Medium"/>
+                                 
+                        <TextBlock Grid.Row="0" Grid.Column="1" 
+                                 Foreground="White"
+                                 FontWeight="Medium"
+                                 FontSize="13"
+                                 Text="{Binding Settings.Brightness, StringFormat='{}{0:P0}'}"/>
                         
                         <Slider Grid.Row="1" Grid.ColumnSpan="2"
-                            Style="{StaticResource ModernSlider}"
-                            Minimum="0.1" Maximum="1" 
-                            SmallChange="0.01" LargeChange="0.1"
-                            Value="{Binding Settings.Brightness}"
-                            ValueChanged="Slider_ValueChanged"/>
+                              Margin="0,5"
+                              Minimum="0.1" Maximum="1" 
+                              SmallChange="0.01" LargeChange="0.1"
+                              Value="{Binding Settings.Brightness}"
+                              ValueChanged="ParamSlider_ValueChanged"/>
                     </Grid>
                     
-                    <!-- Mode -->
-                    <Grid>
+                    <!-- Transparence du widget -->
+                    <Grid Margin="0,0,0,15">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="*"/>
                             <ColumnDefinition Width="Auto"/>
                         </Grid.ColumnDefinitions>
                         
-                        <TextBlock Text="MODE" Style="{StaticResource SliderLabel}"/>
+                        <TextBlock Grid.Row="0" Grid.Column="0" Text="TRANSPARENCE" 
+                                 Foreground="White" 
+                                 FontSize="13"
+                                 FontWeight="Medium"/>
+                                 
+                        <TextBlock Grid.Row="0" Grid.Column="1" 
+                                 Foreground="White"
+                                 FontWeight="Medium"
+                                 FontSize="13"
+                                 Text="{Binding Settings.Opacity, StringFormat='{}{0:P0}'}"/>
                         
-                        <ComboBox Grid.Column="1" 
-                              ItemsSource="{Binding FilterModeNames}"
-                              SelectedIndex="{Binding SelectedModeIndex}"
-                              Background="#33FFFFFF"
-                              Foreground="White"
-                              BorderThickness="0"
-                              Width="120"
-                              SelectionChanged="Mode_SelectionChanged"/>
+                        <Slider Grid.Row="1" Grid.ColumnSpan="2"
+                              Margin="0,5"
+                              Minimum="0.5" Maximum="1" 
+                              SmallChange="0.01" LargeChange="0.1"
+                              Value="{Binding Settings.Opacity}"/>
                     </Grid>
                     
-                    <!-- Bouton Restauration -->
-                    <Button Content="RESTAURER ÉCRAN" 
-                        Margin="0,20,0,0" 
-                        Height="36"
-                        Click="RestoreScreen_Click"
-                        Cursor="Hand"
-                        Foreground="White"
-                        FontWeight="SemiBold"
-                        BorderThickness="0">
-                        <Button.Background>
-                            <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                <GradientStop Color="#4D4D4D" Offset="0"/>
-                                <GradientStop Color="#333333" Offset="1"/>
-                            </LinearGradientBrush>
-                        </Button.Background>
-                        <Button.Template>
-                            <ControlTemplate TargetType="Button">
-                                <Border Background="{TemplateBinding Background}"
-                                    BorderBrush="{TemplateBinding BorderBrush}"
-                                    BorderThickness="{TemplateBinding BorderThickness}"
-                                    CornerRadius="8">
-                                    <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center"/>
-                                </Border>
-                                <ControlTemplate.Triggers>
-                                    <Trigger Property="IsMouseOver" Value="True">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                                    <GradientStop Color="#555555" Offset="0"/>
-                                                    <GradientStop Color="#444444" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                    <Trigger Property="IsPressed" Value="True">
-                                        <Setter Property="Background">
-                                            <Setter.Value>
-                                                <LinearGradientBrush EndPoint="0.5,1" StartPoint="0.5,0">
-                                                    <GradientStop Color="#333333" Offset="0"/>
-                                                    <GradientStop Color="#4D4D4D" Offset="1"/>
-                                                </LinearGradientBrush>
-                                            </Setter.Value>
-                                        </Setter>
-                                    </Trigger>
-                                </ControlTemplate.Triggers>
-                            </ControlTemplate>
-                        </Button.Template>
-                    </Button>
+                    <!-- Paramètres de planification -->
+                    <Grid Margin="0,0,0,10">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="Auto"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <TextBlock Text="ACTIVATION PROGRAMMÉE" 
+                                 Foreground="White" 
+                                 FontSize="13"
+                                 FontWeight="Medium"
+                                 VerticalAlignment="Center"/>
+                        
+                        <CheckBox Grid.Column="1" 
+                                 IsChecked="{Binding Settings.UseSchedule}"
+                                 Content="Activer"
+                                 Foreground="White"/>
+                    </Grid>
+                    
+                    <!-- Heures d'activation (visible si planification activée) -->
+                    <Grid Visibility="{Binding Settings.UseSchedule, Converter={StaticResource BoolToVisConverter}}" 
+                          Margin="0,0,0,15">
+                        <Grid.RowDefinitions>
+                            <RowDefinition Height="Auto"/>
+                            <RowDefinition Height="Auto"/>
+                        </Grid.RowDefinitions>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <!-- Heure d'activation -->
+                        <StackPanel Grid.Row="0" Grid.Column="0" Margin="0,0,5,0">
+                            <TextBlock Text="ACTIVATION" 
+                                     Foreground="White" 
+                                     FontSize="13"
+                                     FontWeight="Medium"
+                                     Margin="0,0,0,5"/>
+                                     
+                            <views:TimePicker SelectedTime="{Binding Settings.ActivationTime, Mode=TwoWay}"/>
+                        </StackPanel>
+                        
+                        <!-- Heure de désactivation -->
+                        <StackPanel Grid.Row="0" Grid.Column="1" Margin="5,0,0,0">
+                            <TextBlock Text="DÉSACTIVATION" 
+                                     Foreground="White" 
+                                     FontSize="13"
+                                     FontWeight="Medium"
+                                     Margin="0,0,0,5"/>
+                                     
+                            <views:TimePicker SelectedTime="{Binding Settings.DeactivationTime, Mode=TwoWay}"/>
+                        </StackPanel>
+                        
+                        <!-- Explication -->
+                        <TextBlock Grid.Row="1" Grid.ColumnSpan="2"
+                                 Text="Le filtre s'activera et se désactivera automatiquement aux heures indiquées."
+                                 Foreground="#AAAAAA"
+                                 FontSize="11"
+                                 TextWrapping="Wrap"
+                                 Margin="0,8,0,0"/>
+                    </Grid>
+                    
+                    <!-- Séparateur -->
+                    <Border Height="1" Background="#333333" Margin="0,0,0,15"/>
+                    
+                    <!-- Boutons -->
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*"/>
+                            <ColumnDefinition Width="*"/>
+                        </Grid.ColumnDefinitions>
+                        
+                        <Button Grid.Column="0" Content="RESTAURER ÉCRAN" 
+                              Height="36"
+                              Margin="0,0,5,0"
+                              Background="#333333"
+                              Foreground="White"
+                              BorderThickness="0"
+                              Command="{Binding RestoreScreenCommand}"
+                              Cursor="Hand"/>
+                              
+                        <Button Grid.Column="1" Content="APPLIQUER" 
+                              Height="36"
+                              Margin="5,0,0,0"
+                              Background="#FF6700"
+                              Foreground="White"
+                              BorderThickness="0"
+                              Command="{Binding ApplyChangesCommand}"
+                              Cursor="Hand"/>
+                    </Grid>
                 </StackPanel>
             </ScrollViewer>
+            
+            <!-- Barre de statut -->
+            <Border Grid.Row="2" Background="#222222" 
+                  Height="30" CornerRadius="4" 
+                  Margin="0,10,0,0">
+                <TextBlock Text="{Binding StatusText}" 
+                         Foreground="#CCCCCC"
+                         VerticalAlignment="Center"
+                         HorizontalAlignment="Center"/>
+            </Border>
         </Grid>
         
         <!-- Icône dans la barre des tâches -->
         <tb:TaskbarIcon IconSource="/Resources/Icons/AppIcon.ico"
                      ToolTipText="Foxy Light Filter">
             <tb:TaskbarIcon.ContextMenu>
-                <ContextMenu Background="#232323" BorderThickness="0">
-                    <MenuItem Header="Activer/Désactiver" 
-                              Command="{Binding ToggleFilterCommand}"
-                              Foreground="White"/>
-                    <MenuItem Header="Restaurer écran" 
-                              Click="RestoreScreen_Click" 
-                              Foreground="White"/>
-                    <MenuItem Header="Afficher/Masquer" 
-                              Click="ShowHideWindow_Click" 
-                              Foreground="White"/>
-                    <Separator Background="#444444"/>
-                    <MenuItem Header="Quitter" 
-                              Command="{Binding ExitCommand}"
-                              Foreground="White"/>
+                <ContextMenu Background="#151515" BorderThickness="0">
+                    <ContextMenu.Resources>
+                        <Style TargetType="MenuItem">
+                            <Setter Property="Foreground" Value="White"/>
+                            <Setter Property="Background" Value="Transparent"/>
+                            <Setter Property="BorderThickness" Value="0"/>
+                            <Style.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter Property="Background" Value="#333333"/>
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                        <Style TargetType="Separator">
+                            <Setter Property="Background" Value="#333333"/>
+                        </Style>
+                    </ContextMenu.Resources>
+                    <MenuItem Header="Activer/Désactiver" Command="{Binding ToggleFilterCommand}"/>
+                    <MenuItem Header="Restaurer écran" Command="{Binding RestoreScreenCommand}"/>
+                    <MenuItem Header="Afficher/Masquer" Click="ShowHideWindow_Click"/>
+                    <Separator/>
+                    <MenuItem Header="Quitter" Command="{Binding ExitCommand}"/>
                 </ContextMenu>
             </tb:TaskbarIcon.ContextMenu>
         </tb:TaskbarIcon>

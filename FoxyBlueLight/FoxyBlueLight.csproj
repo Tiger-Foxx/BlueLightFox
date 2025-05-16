@@ -15,12 +15,22 @@
       <PackageReference Include="Hardcodet.Wpf.TaskbarNotification" Version="1.0.5" />
       <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
       <PackageReference Include="MahApps.Metro" Version="3.0.0-rc0516" />
+      <PackageReference Include="MaterialDesignThemes" Version="5.2.2-ci991" />
+      <PackageReference Include="MaterialDesignThemes.Wpf" Version="1.0.1" />
       <PackageReference Include="ModernWpfUI" Version="0.9.7-preview.2" />
       <PackageReference Include="Verify.CommunityToolkit.Mvvm" Version="0.1.0" />
     </ItemGroup>
 
     <ItemGroup>
         <Resource Include="Resources\Icons\AppIcon.ico" />
+        <None Remove="Resources\logo.png" />
+        <Resource Include="Resources\logo.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Resource>
+        <None Remove="Resources\Gemini_Generated_Image_inmqxkinmqxkinmq-removebg-preview.png" />
+        <Resource Include="Resources\logo2.png">
+          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+        </Resource>
 
     </ItemGroup>
 

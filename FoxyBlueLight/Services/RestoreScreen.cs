@@ -2,16 +2,15 @@
 using System.IO;
 using System.Windows;
 using System.Diagnostics;
-using System.Runtime.InteropServices;
 using FoxyBlueLight.Native;
 using Microsoft.Win32;
-using System.Runtime.InteropServices;
+using static FoxyBlueLight.Native.DisplayAPI;
 
 namespace FoxyBlueLight.Services
 {
     public static class RestoreScreen
     {
-        // Restaure les couleurs de l'écran à leurs valeurs normales et nettoie complètement les traces
+        // Restaure les couleurs de l'écran et nettoie toutes les traces
         public static void RestoreNormalColors(bool showMessage = true)
         {
             try
@@ -31,8 +30,7 @@ namespace FoxyBlueLight.Services
                 if (showMessage)
                 {
                     MessageBox.Show(
-                        "Les couleurs de l'écran ont été restaurées et toutes les traces de l'application ont été nettoyées.\n\n" +
-                        "Si vous utilisez cette application à l'avenir, elle démarrera avec des paramètres par défaut.",
+                        "Les couleurs de l'écran ont été restaurées et toutes les traces de l'application ont été nettoyées.",
                         "Restauration complète", MessageBoxButton.OK, MessageBoxImage.Information);
                 }
             }
@@ -52,10 +50,10 @@ namespace FoxyBlueLight.Services
             try
             {
                 // Obtenir le handle du DC de l'écran
-                IntPtr hDC = DisplayAPI.GetDC(IntPtr.Zero);
+                IntPtr hDC = GetDC(IntPtr.Zero);
                 
                 // Créer une rampe gamma par défaut (linéaire)
-                DisplayAPI.RAMP ramp = DisplayAPI.CreateRamp();
+                RAMP ramp = CreateRamp();
                 
                 // Remplir avec des valeurs linéaires (écran normal)
                 for (int i = 0; i < 256; i++)
@@ -67,26 +65,12 @@ namespace FoxyBlueLight.Services
                 }
                 
                 // Appliquer la rampe gamma par défaut
-                DisplayAPI.SetDeviceGammaRamp(hDC, ref ramp);
+                SetDeviceGammaRamp(hDC, ref ramp);
                 
                 // Libérer le DC
-                DisplayAPI.ReleaseDC(IntPtr.Zero, hDC);
+                ReleaseDC(IntPtr.Zero, hDC);
                 
                 // Forcer un rafraîchissement complet de l'écran
-                ForceDisplayRefresh();
-            }
-            catch (Exception)
-            {
-                // Silencieux en cas d'échec - on continue avec les autres méthodes de nettoyage
-            }
-        }
-        
-        // Force un rafraîchissement complet de l'affichage
-        private static void ForceDisplayRefresh()
-        {
-            try
-            {
-                // Cette séquence d'appels force Windows à rafraîchir le profil de couleur
                 SystemParametersInfo(SPI_SETDESKWALLPAPER, 0, null, SPIF_UPDATEINIFILE | SPIF_SENDCHANGE);
             }
             catch
@@ -94,13 +78,6 @@ namespace FoxyBlueLight.Services
                 // Silencieux en cas d'échec
             }
         }
-        
-        [DllImport("user32.dll", CharSet = CharSet.Auto)]
-        private static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
-        
-        private const int SPI_SETDESKWALLPAPER = 20;
-        private const int SPIF_UPDATEINIFILE = 0x01;
-        private const int SPIF_SENDCHANGE = 0x02;
         
         // Nettoie toutes les entrées de registre liées à l'application
         private static void CleanupRegistry()

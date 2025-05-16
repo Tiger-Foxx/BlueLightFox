@@ -15,8 +15,8 @@ namespace FoxyBlueLight
             // Vérifier si l'application s'est fermée de manière inattendue avec le filtre activé
             if (RestoreScreen.GetFilterStateFromRegistry())
             {
-                // Restaurer les couleurs normales au démarrage
-                RestoreScreen.RestoreNormalColors();
+                // Restaurer les couleurs normales au démarrage sans afficher de message
+                RestoreScreen.RestoreNormalColors(false);
             }
             
             // Gestion des exceptions globales
@@ -35,9 +35,19 @@ namespace FoxyBlueLight
         
         private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
         {
-            string errorMessage = e.ExceptionObject.ToString();
-            MessageBox.Show($"Une erreur est survenue:\n\n{errorMessage}", 
-                "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            try
+            {
+                string errorMessage = e.ExceptionObject.ToString();
+                MessageBox.Show($"Une erreur est survenue:\n\n{errorMessage}", 
+                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+                           
+                // En cas d'erreur, restaurer les couleurs de l'écran
+                RestoreScreen.RestoreNormalColors(false);
+            }
+            catch
+            {
+                // Dernier recours si même la gestion d'erreur échoue
+            }
         }
     }
 }

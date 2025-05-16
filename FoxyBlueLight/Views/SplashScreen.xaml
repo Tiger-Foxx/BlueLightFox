@@ -5,20 +5,62 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
         Title="Foxy Light Filter" 
-        Height="300" Width="400"
+        Height="320" Width="400"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"
         WindowStartupLocation="CenterScreen"
         ResizeMode="NoResize">
     
+    <Window.Resources>
+        <Storyboard x:Key="LoadingAnimation">
+            <!-- Animation du logo -->
+            <DoubleAnimation Storyboard.TargetName="LogoImage" 
+                         Storyboard.TargetProperty="Opacity"
+                         From="0" To="1" Duration="0:0:0.8"/>
+                             
+            <DoubleAnimation Storyboard.TargetName="LogoImage" 
+                         Storyboard.TargetProperty="RenderTransform.ScaleX"
+                         From="0.8" To="1" Duration="0:0:0.8">
+                <DoubleAnimation.EasingFunction>
+                    <BackEase EasingMode="EaseOut" Amplitude="0.3"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            
+            <DoubleAnimation Storyboard.TargetName="LogoImage" 
+                         Storyboard.TargetProperty="RenderTransform.ScaleY"
+                         From="0.8" To="1" Duration="0:0:0.8">
+                <DoubleAnimation.EasingFunction>
+                    <BackEase EasingMode="EaseOut" Amplitude="0.3"/>
+                </DoubleAnimation.EasingFunction>
+            </DoubleAnimation>
+            
+            <!-- Animation du halo -->
+            <DoubleAnimation Storyboard.TargetName="LogoGlow" 
+                         Storyboard.TargetProperty="Opacity"
+                         From="0" To="0.8" Duration="0:0:1.2"
+                         BeginTime="0:0:0.3"/>
+                         
+            <!-- Animation du texte -->
+            <DoubleAnimation Storyboard.TargetName="AppTitle" 
+                         Storyboard.TargetProperty="Opacity"
+                         From="0" To="1" Duration="0:0:0.5"
+                         BeginTime="0:0:0.8"/>
+                         
+            <DoubleAnimation Storyboard.TargetName="Tagline" 
+                         Storyboard.TargetProperty="Opacity"
+                         From="0" To="1" Duration="0:0:0.5"
+                         BeginTime="0:0:1.0"/>
+        </Storyboard>
+    </Window.Resources>
+    
     <Grid>
-        <!-- Fond avec effet de flou -->
+        <!-- Fond -->
         <Border CornerRadius="16">
             <Border.Background>
                 <LinearGradientBrush StartPoint="0,0" EndPoint="1,1">
-                    <GradientStop Color="#232323" Offset="0"/>
-                    <GradientStop Color="#1A1A1A" Offset="1"/>
+                    <GradientStop Color="#151515" Offset="0"/>
+                    <GradientStop Color="#0E0E0E" Offset="1"/>
                 </LinearGradientBrush>
             </Border.Background>
             <Border.Effect>
@@ -27,31 +69,46 @@
         </Border>
         
         <!-- Contenu du splash -->
-        <Grid Margin="25">
+        <Grid Margin="30">
             <Grid.RowDefinitions>
                 <RowDefinition Height="*"/>
                 <RowDefinition Height="Auto"/>
                 <RowDefinition Height="Auto"/>
             </Grid.RowDefinitions>
             
-            <!-- Logo (cercle simple) -->
-            <Ellipse Grid.Row="0" Width="120" Height="120" 
-                   Fill="White" Opacity="0.9"
-                   Name="Logo">
-                <Ellipse.Effect>
-                    <DropShadowEffect BlurRadius="20" ShadowDepth="0" Color="White" Opacity="0.5"/>
-                </Ellipse.Effect>
-            </Ellipse>
+            <!-- Logo avec glow effect -->
+            <Grid Grid.Row="0" Width="150" Height="150">
+                <!-- Effet de halo -->
+                <Ellipse x:Name="LogoGlow" 
+                     Width="160" Height="160" 
+                     Fill="Transparent" 
+                     Opacity="0">
+                    <Ellipse.Effect>
+                        <BlurEffect Radius="20"/>
+                    </Ellipse.Effect>
+                </Ellipse>
+                
+                <!-- Logo centré -->
+                <Image x:Name="LogoImage" 
+                   Source="/Resources/logo2.png" 
+                   Width="120" Height="120"
+                   Opacity="0">
+                    <Image.RenderTransform>
+                        <ScaleTransform ScaleX="1" ScaleY="1" CenterX="60" CenterY="60"/>
+                    </Image.RenderTransform>
+                </Image>
+            </Grid>
             
             <!-- Titre de l'application -->
             <TextBlock Grid.Row="1" 
-                       Name="AppTitle"
-                       Text="FOXY LIGHT FILTER" 
-                       Foreground="White" 
-                       FontWeight="Bold"
-                       FontSize="24"
-                       HorizontalAlignment="Center"
-                       Margin="0,20,0,5">
+                   x:Name="AppTitle"
+                   Text="FOXY LIGHT FILTER" 
+                   Foreground="White" 
+                   FontWeight="Bold"
+                   FontSize="24"
+                   HorizontalAlignment="Center"
+                   Margin="0,20,0,5"
+                   Opacity="0">
                 <TextBlock.Effect>
                     <DropShadowEffect ShadowDepth="1" BlurRadius="3" Opacity="0.3"/>
                 </TextBlock.Effect>
@@ -59,12 +116,13 @@
             
             <!-- Tagline -->
             <TextBlock Grid.Row="2" 
-                       Name="Tagline"
-                       Text="Protection avancée pour vos yeux" 
-                       Foreground="#CCFFFFFF"
-                       FontSize="14"
-                       FontWeight="Light"
-                       HorizontalAlignment="Center"/>
+                   x:Name="Tagline"
+                   Text="Protection avancée pour vos yeux" 
+                   Foreground="#CCCCCC"
+                   FontSize="14"
+                   FontWeight="Light"
+                   HorizontalAlignment="Center"
+                   Opacity="0"/>
         </Grid>
     </Grid>
 </Window>

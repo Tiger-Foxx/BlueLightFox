@@ -17,6 +17,13 @@ namespace FoxyBlueLight.Native
         [DllImport("user32.dll")]
         public static extern int ReleaseDC(IntPtr hWnd, IntPtr hDC);
 
+        [DllImport("user32.dll", CharSet = CharSet.Auto)]
+        public static extern int SystemParametersInfo(int uAction, int uParam, string lpvParam, int fuWinIni);
+
+        public const int SPI_SETDESKWALLPAPER = 20;
+        public const int SPIF_UPDATEINIFILE = 0x01;
+        public const int SPIF_SENDCHANGE = 0x02;
+
         [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Ansi)]
         public struct RAMP
         {

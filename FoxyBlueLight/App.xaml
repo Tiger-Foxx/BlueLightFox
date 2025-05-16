@@ -1,19 +1,17 @@
 ﻿<Application x:Class="FoxyBlueLight.App"
              xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:local="clr-namespace:FoxyBlueLight"
-             xmlns:helpers="clr-namespace:FoxyBlueLight.Helpers">
+             xmlns:local="clr-namespace:FoxyBlueLight">
     <Application.Resources>
         <ResourceDictionary>
-            <!-- Convertisseurs de base -->
-            <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter"/>
-            <helpers:BoolToStringConverter x:Key="BoolToStringConverter" TrueValue="ON" FalseValue="OFF"/>
-            <helpers:BoolToColorConverter x:Key="BoolToColorConverter"/>
-            <helpers:BoolToAlignmentConverter x:Key="BoolToAlignmentConverter"/>
+            <ResourceDictionary.MergedDictionaries>
+                <ResourceDictionary Source="Styles/DarkTheme.xaml"/>
+                <ResourceDictionary Source="Styles/ScrollViewerStyle.xaml"/>
+                <ResourceDictionary Source="Styles/ComboBoxStyles.xaml"/>
+            </ResourceDictionary.MergedDictionaries>
             
-            <!-- Ajoutez ces convertisseurs -->
-            <helpers:BoolToLeftPosConverter x:Key="BoolToLeftPosConverter"/>
-            <helpers:MultiplyByConverter x:Key="MultiplyByConverter"/>
+            <!-- Convertisseurs de base -->
+            <BooleanToVisibilityConverter x:Key="BoolToVisConverter"/>
         </ResourceDictionary>
     </Application.Resources>
 </Application>
