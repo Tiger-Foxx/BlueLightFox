@@ -9,7 +9,7 @@
         <ApplicationIcon>Resources\Icons\AppIcon.ico</ApplicationIcon>
         <Version>1.0.0</Version>
         <Authors>Fox</Authors>
-        <Company>FoxyBlueLight</Company>
+        <Company>Fox</Company>
         <Description>Protection avancée des yeux contre la lumière bleue</Description>
         <Copyright>Copyright © 2025</Copyright>
         <Nullable>enable</Nullable>
@@ -18,6 +18,9 @@
         <SelfContained>true</SelfContained>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <PublishReadyToRun>true</PublishReadyToRun>
+        <AssemblyVersion>1.0.0</AssemblyVersion>
+        <FileVersion>1.0.0</FileVersion>
+        <NeutralLanguage>fr-FR</NeutralLanguage>
     </PropertyGroup>
 
 

@@ -1,59 +1,66 @@
-﻿using System;
-using System.Threading;
-using System.Windows;
-using FoxyBlueLight.Views;
-using SplashScreen = FoxyBlueLight.Views.SplashScreen;
+﻿using System.Windows;
+using FoxyBlueLight.Services;
+using FoxyBlueLight.ViewModels;
 
 namespace FoxyBlueLight
 {
     public partial class App : Application
     {
-        private Mutex _mutex = null;
-        private const string AppName = "FoxyBlueLightFilter";
-
+        private MainViewModel _mainViewModel;
+        
         protected override void OnStartup(StartupEventArgs e)
         {
-            // Vérifier si l'application est déjà en cours d'exécution
-            bool createdNew;
-            _mutex = new Mutex(true, AppName, out createdNew);
-            
-            if (!createdNew)
-            {
-                MessageBox.Show("FoxyBlueLight est déjà en cours d'exécution.", "Information", 
-                    MessageBoxButton.OK, MessageBoxImage.Information);
-                Shutdown();
-                return;
-            }
-            
             base.OnStartup(e);
             
-            // Afficher le SplashScreen
-            var splashScreen = new SplashScreen();
-            splashScreen.Show();
+            // Capture de l'événement de fermeture de l'application
+            Current.Exit += Current_Exit;
             
-            // Fermer le SplashScreen après un délai et afficher la fenêtre principale
-            var timer = new System.Windows.Threading.DispatcherTimer
-            {
-                Interval = TimeSpan.FromSeconds(2)
-            };
-            timer.Tick += (s, args) =>
-            {
-                timer.Stop();
-                splashScreen.Close();
-                
-                // La fenêtre principale sera créée automatiquement via StartupUri
-            };
-            timer.Start();
+            // Capture des exceptions non gérées
+            Current.DispatcherUnhandledException += Current_DispatcherUnhandledException;
         }
-
-        protected override void OnExit(ExitEventArgs e)
+        
+        private void Current_Exit(object sender, ExitEventArgs e)
         {
-            if (_mutex != null)
+            // Récupérer le ViewModel principal
+            if (Current.MainWindow?.DataContext is MainViewModel viewModel)
             {
-                _mutex.ReleaseMutex();
-                _mutex.Dispose();
+                // Nettoyer les ressources et restaurer l'écran
+                viewModel.Cleanup();
             }
-            base.OnExit(e);
+            else
+            {
+                // Fallback si le ViewModel n'est pas accessible
+                var filterService = new FilterService();
+                filterService.RestoreOriginalRamp();
+            }
+        }
+        
+        private void Current_DispatcherUnhandledException(object sender, 
+            System.Windows.Threading.DispatcherUnhandledExceptionEventArgs e)
+        {
+            // Journaliser l'exception
+            System.Diagnostics.Debug.WriteLine($"Exception non gérée: {e.Exception}");
+            
+            // Tenter de restaurer l'écran même en cas d'erreur
+            try
+            {
+                var filterService = new FilterService();
+                filterService.RestoreOriginalRamp();
+            }
+            catch
+            {
+                // Silencieux en cas d'échec
+            }
+            
+            // Marquer l'exception comme gérée pour éviter le crash
+            e.Handled = true;
+            
+            // Afficher un message d'erreur convivial
+            MessageBox.Show("Une erreur s'est produite. L'écran a été restauré.\n\nDétails: " + 
+                e.Exception.Message, "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
+            
+            // Fermer proprement l'application
+            Current.Shutdown();
         }
     }
 }
