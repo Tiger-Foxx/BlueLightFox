@@ -1,0 +1,26 @@
+﻿✅ INSTALLATION RÉUSSIE
+
+Félicitations ! FoxyBlueLight a été installé avec succès sur votre ordinateur.
+
+🚀 PREMIERS PAS
+
+• L'application démarre automatiquement après l'installation
+• Vous pouvez accéder à FoxyBlueLight depuis l'icône dans la barre des tâches
+• Cliquez sur l'icône pour ouvrir le panneau de configuration
+• Essayez différents modes pour trouver celui qui convient le mieux à vos yeux
+
+💡 CONSEILS D'UTILISATION
+
+• Mode "Nuit" : Idéal pour une utilisation nocturne, réduit considérablement la lumière bleue
+• Mode "Lecture" : Optimisé pour la lecture prolongée de textes
+• Mode "Personnalisé" : Ajustez manuellement les niveaux RGB selon vos préférences
+• Activation programmée : Configurez l'application pour s'activer automatiquement le soir
+
+🔧 BESOIN D'AIDE ?
+
+• Visitez notre site web : https://the-fox.tech
+• Contactez-nous par email : donfackarthur750@gmail.com
+• WhatsApp : +237658866639
+• GitHub : https://github.com/Tiger-Foxx/BlueLightFox
+
+Merci d'avoir choisi FoxyBlueLight pour protéger vos yeux !

@@ -1,0 +1,44 @@
+﻿CONTRAT DE LICENCE UTILISATEUR FINAL - FOXY BLUE LIGHT
+
+Veuillez lire attentivement ce contrat de licence avant d'utiliser le logiciel FoxyBlueLight.
+
+1. DÉFINITIONS
+   "Logiciel" désigne l'application FoxyBlueLight, ses composants, documentation, et tout contenu associé.
+   "Utilisateur" désigne toute personne qui utilise ou accède au Logiciel.
+   "Auteur" désigne Fox, créateur et détenteur des droits du Logiciel.
+
+2. OCTROI DE LICENCE
+   L'Auteur vous accorde une licence mondiale, non exclusive, gratuite et révocable pour utiliser le Logiciel sur n'importe quel ordinateur personnel pour un usage privé ou professionnel.
+
+3. DROITS D'AUTEUR
+   Le Logiciel est protégé par les lois sur la propriété intellectuelle. L'Auteur conserve tous les droits, titres et intérêts relatifs au Logiciel.
+
+4. UTILISATIONS AUTORISÉES
+   Vous êtes autorisé à :
+   - Installer et utiliser le Logiciel sur un nombre illimité d'ordinateurs.
+   - Créer des copies de sauvegarde du Logiciel.
+   - Partager le lien de téléchargement officiel du Logiciel.
+
+5. RESTRICTIONS
+   Vous n'êtes pas autorisé à :
+   - Modifier, décompiler, désassembler ou faire de l'ingénierie inverse sur le Logiciel.
+   - Supprimer ou modifier les mentions de droits d'auteur présentes dans le Logiciel.
+   - Utiliser le Logiciel pour développer des produits concurrents.
+   - Redistribuer le Logiciel en le faisant passer pour votre propre création.
+
+6. GARANTIE ET RESPONSABILITÉ
+   Le Logiciel est fourni "tel quel", sans garantie d'aucune sorte, expresse ou implicite. 
+   L'Auteur ne garantit pas que le Logiciel sera exempt d'erreurs ou qu'il fonctionnera sans interruption.
+   En aucun cas, l'Auteur ne pourra être tenu responsable de tout dommage direct ou indirect résultant de l'utilisation du Logiciel.
+
+7. RÉSILIATION
+   Cette licence est effective jusqu'à sa résiliation. Vous pouvez y mettre fin à tout moment en désinstallant le Logiciel.
+   Cette licence sera automatiquement résiliée si vous ne respectez pas ses termes et conditions.
+
+8. DISPOSITIONS GÉNÉRALES
+   Ce contrat constitue l'intégralité de l'accord entre vous et l'Auteur concernant le Logiciel.
+   Les lois applicables dans votre pays de résidence régissent ce contrat.
+
+En installant ou en utilisant le Logiciel, vous acceptez d'être lié par les termes de ce contrat.
+
+© 2025 Fox. Tous droits réservés.

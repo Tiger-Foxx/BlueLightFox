@@ -1,0 +1,28 @@
+﻿BIENVENUE DANS L'INSTALLATION DE FOXY BLUE LIGHT
+
+Merci d'avoir choisi FoxyBlueLight, votre solution avancée de protection oculaire contre la lumière bleue des écrans !
+
+✨ CE QUE VOUS ALLEZ INSTALLER
+
+FoxyBlueLight est une application moderne qui filtre la lumière bleue émise par votre écran, connue pour causer fatigue oculaire, maux de tête et perturbations du sommeil. Notre technologie ajuste intelligemment les couleurs de votre écran pour optimiser votre confort visuel sans compromettre la qualité des images.
+
+🔍 FONCTIONNALITÉS PRINCIPALES
+
+• Filtrage adaptatif de la lumière bleue avec plusieurs modes prédéfinis
+• Réglages personnalisés de température de couleur et d'intensité
+• Programmation horaire pour l'activation/désactivation automatique
+• Interface moderne et intuitive avec effets visuels élégants
+• Utilisation minimale des ressources système
+• Compatible avec toutes les versions récentes de Windows
+
+⚙️ CONFIGURATION REQUISE
+
+• Système d'exploitation : Windows 10/11 (64 bits)
+• Mémoire vive : 2 Go minimum
+• Espace disque : 50 Mo d'espace libre
+
+🔒 CONFIDENTIALITÉ
+
+FoxyBlueLight n'accède à aucune donnée personnelle et ne nécessite pas de connexion Internet pour fonctionner. L'application modifie uniquement les paramètres d'affichage locaux de votre ordinateur.
+
+Cliquez sur "Suivant" pour continuer l'installation.

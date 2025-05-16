@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-    
 
     <PropertyGroup>
         <OutputType>WinExe</OutputType>
@@ -13,42 +12,49 @@
         <Description>Protection avancée des yeux contre la lumière bleue</Description>
         <Copyright>Copyright © 2025</Copyright>
         <Nullable>enable</Nullable>
-        <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+
+        <!-- Configurations pour réduire la taille sans trimming -->
         <PublishSingleFile>true</PublishSingleFile>
-        <SelfContained>true</SelfContained>
         <RuntimeIdentifier>win-x64</RuntimeIdentifier>
         <PublishReadyToRun>true</PublishReadyToRun>
+        <DebugType>none</DebugType>
+        <DebugSymbols>false</DebugSymbols>
+        <EnableCompressionInSingleFile>true</EnableCompressionInSingleFile>
+
+        <!-- Configurations linguistiques -->
+        <SatelliteResourceLanguages>fr;en</SatelliteResourceLanguages>
+        <NeutralLanguage>fr-FR</NeutralLanguage>
+
+        <!-- Métadonnées du produit -->
         <AssemblyVersion>1.0.0</AssemblyVersion>
         <FileVersion>1.0.0</FileVersion>
-        <NeutralLanguage>fr-FR</NeutralLanguage>
+        <Product>FoxyBlueLight</Product>
     </PropertyGroup>
 
-
     <ItemGroup>
-      <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
-      <PackageReference Include="FluentWPF" Version="0.10.2" />
-      <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
-      <PackageReference Include="Hardcodet.Wpf.TaskbarNotification" Version="1.0.5" />
-      <PackageReference Include="LiveCharts.Wpf" Version="0.9.7" />
-      <PackageReference Include="MahApps.Metro" Version="3.0.0-rc0516" />
-      <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
-      <PackageReference Include="ModernWpfUI" Version="0.9.7-preview.2" />
-      <PackageReference Include="Verify.CommunityToolkit.Mvvm" Version="0.1.0" />
+        <PackageReference Include="CommunityToolkit.Mvvm" Version="8.4.0" />
+        <PackageReference Include="FluentWPF" Version="0.10.2" />
+        <PackageReference Include="Hardcodet.NotifyIcon.Wpf" Version="2.0.1" />
+        <PackageReference Include="MahApps.Metro" Version="3.0.0-rc0516" />
+        <PackageReference Include="MaterialDesignThemes" Version="4.9.0" />
+        <PackageReference Include="ModernWpfUI" Version="0.9.7-preview.2" />
     </ItemGroup>
 
+    <!-- Supprimer les dépendances de test inutilisées -->
+    <ItemGroup>
+        <PackageReference Remove="Verify.CommunityToolkit.Mvvm" />
+        <PackageReference Remove="Hardcodet.Wpf.TaskbarNotification" />
+    </ItemGroup>
+
+    <!-- Ressources -->
     <ItemGroup>
         <None Remove="Resources\logo.png" />
         <None Remove="Resources\Gemini_Generated_Image_inmqxkinmqxkinmq-removebg-preview.png" />
         <None Remove="Resources\logo3.png" />
         <Resource Include="Resources\logo.png" />
-        <Resource Include="Resources\logo3.png">
-          <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-        </Resource>
+        <Resource Include="Resources\logo3.png" />
         <None Remove="Resources\Icons\AppIcon.ico" />
-        <Resource Include="Resources\Icons\AppIcon.ico">
-          <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-        </Resource>
-
+        <Resource Include="Resources\Icons\AppIcon.ico" />
     </ItemGroup>
 
 </Project>
