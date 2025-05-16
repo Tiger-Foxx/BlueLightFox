@@ -1,0 +1,41 @@
+﻿<UserControl x:Class="FoxyBlueLight.Views.ColorSelector"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:FoxyBlueLight.Views"
+             mc:Ignorable="d" 
+             d:DesignHeight="50" d:DesignWidth="300">
+    
+    <ItemsControl x:Name="ColorCircles">
+        <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+                <WrapPanel/>
+            </ItemsPanelTemplate>
+        </ItemsControl.ItemsPanel>
+        <ItemsControl.ItemTemplate>
+            <DataTemplate>
+                <Button Width="36" Height="36" Margin="4" 
+                      Background="{Binding HexColor}" 
+                      BorderThickness="0"
+                      Command="{Binding DataContext.SelectColorCommand, RelativeSource={RelativeSource FindAncestor, AncestorType={x:Type UserControl}}}" 
+                      CommandParameter="{Binding Color}"
+                      ToolTip="{Binding Name}">
+                    <Button.Template>
+                        <ControlTemplate TargetType="Button">
+                            <Grid>
+                                <Ellipse Fill="{TemplateBinding Background}"/>
+                                <Ellipse x:Name="highlight" Stroke="White" StrokeThickness="0"/>
+                            </Grid>
+                            <ControlTemplate.Triggers>
+                                <Trigger Property="IsMouseOver" Value="True">
+                                    <Setter TargetName="highlight" Property="StrokeThickness" Value="2"/>
+                                </Trigger>
+                            </ControlTemplate.Triggers>
+                        </ControlTemplate>
+                    </Button.Template>
+                </Button>
+            </DataTemplate>
+        </ItemsControl.ItemTemplate>
+    </ItemsControl>
+</UserControl>

@@ -1,6 +1,6 @@
 ﻿using System;
+using System.Threading;
 using System.Windows;
-using FoxyBlueLight.Services;
 using FoxyBlueLight.Views;
 using SplashScreen = FoxyBlueLight.Views.SplashScreen;
 
@@ -8,46 +8,52 @@ namespace FoxyBlueLight
 {
     public partial class App : Application
     {
+        private Mutex _mutex = null;
+        private const string AppName = "FoxyBlueLightFilter";
+
         protected override void OnStartup(StartupEventArgs e)
         {
-            base.OnStartup(e);
+            // Vérifier si l'application est déjà en cours d'exécution
+            bool createdNew;
+            _mutex = new Mutex(true, AppName, out createdNew);
             
-            // Vérifier si l'application s'est fermée de manière inattendue avec le filtre activé
-            if (RestoreScreen.GetFilterStateFromRegistry())
+            if (!createdNew)
             {
-                // Restaurer les couleurs normales au démarrage sans afficher de message
-                RestoreScreen.RestoreNormalColors(false);
+                MessageBox.Show("FoxyBlueLight est déjà en cours d'exécution.", "Information", 
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                Shutdown();
+                return;
             }
             
-            // Gestion des exceptions globales
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            base.OnStartup(e);
             
-            // Démarrer avec le splash screen
+            // Afficher le SplashScreen
             var splashScreen = new SplashScreen();
             splashScreen.Show();
             
-            // Préparer le widget principal
-            var mainWindow = new ModernWidget();
-            
-            // Afficher le widget lorsque le splash screen se ferme
-            splashScreen.Closed += (s, args) => mainWindow.Show();
+            // Fermer le SplashScreen après un délai et afficher la fenêtre principale
+            var timer = new System.Windows.Threading.DispatcherTimer
+            {
+                Interval = TimeSpan.FromSeconds(2)
+            };
+            timer.Tick += (s, args) =>
+            {
+                timer.Stop();
+                splashScreen.Close();
+                
+                // La fenêtre principale sera créée automatiquement via StartupUri
+            };
+            timer.Start();
         }
-        
-        private void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
+
+        protected override void OnExit(ExitEventArgs e)
         {
-            try
+            if (_mutex != null)
             {
-                string errorMessage = e.ExceptionObject.ToString();
-                MessageBox.Show($"Une erreur est survenue:\n\n{errorMessage}", 
-                    "Erreur", MessageBoxButton.OK, MessageBoxImage.Error);
-                           
-                // En cas d'erreur, restaurer les couleurs de l'écran
-                RestoreScreen.RestoreNormalColors(false);
+                _mutex.ReleaseMutex();
+                _mutex.Dispose();
             }
-            catch
-            {
-                // Dernier recours si même la gestion d'erreur échoue
-            }
+            base.OnExit(e);
         }
     }
 }

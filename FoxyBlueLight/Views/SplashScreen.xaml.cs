@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Media.Animation;
 using System.Windows.Threading;
@@ -12,40 +13,35 @@ namespace FoxyBlueLight.Views
         public SplashScreen()
         {
             InitializeComponent();
-            Loaded += SplashScreen_Loaded;
             
-            // Timer pour fermer automatiquement
+            // Timer pour fermer automatiquement après un délai
             _timer = new DispatcherTimer
             {
-                Interval = TimeSpan.FromSeconds(2.5)
+                Interval = TimeSpan.FromSeconds(3)
             };
-            _timer.Tick += Timer_Tick;
+            
+            _timer.Tick += (s, e) =>
+            {
+                _timer.Stop();
+                Close();
+            };
         }
         
         private void SplashScreen_Loaded(object sender, RoutedEventArgs e)
         {
-            // Démarrer l'animation de chargement
-            Storyboard sb = FindResource("LoadingAnimation") as Storyboard;
-            sb?.Begin();
-            
-            // Démarrer le timer pour fermeture automatique
-            _timer.Start();
-        }
-        
-        private void Timer_Tick(object sender, EventArgs e)
-        {
-            _timer.Stop();
-            
-            // Animation de fondu au départ
-            DoubleAnimation fadeOut = new DoubleAnimation
+            try
             {
-                From = 1.0,
-                To = 0.0,
-                Duration = TimeSpan.FromSeconds(0.5)
-            };
-            
-            fadeOut.Completed += (s, _) => Close();
-            BeginAnimation(OpacityProperty, fadeOut);
+                // Démarrer l'animation
+                Storyboard sb = FindResource("LoadingAnimation") as Storyboard;
+                sb?.Begin();
+                
+                // Démarrer le timer pour fermeture automatique
+                _timer.Start();
+            }
+            catch (Exception ex)
+            {
+                Debug.WriteLine($"Erreur dans le SplashScreen: {ex.Message}");
+            }
         }
     }
 }

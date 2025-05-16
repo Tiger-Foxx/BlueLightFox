@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Windows;
+using System.Windows.Interop;
 using System.Windows.Media;
 using FoxyBlueLight.Models;
 using FoxyBlueLight.Native;
@@ -55,12 +56,12 @@ namespace FoxyBlueLight.Services
             bool result = SetRamp(ramp);
             
             // Enregistrer l'état du filtre
-            RestoreScreen.SaveFilterStateToRegistry(settings.IsEnabled);
+            SaveFilterStateToRegistry(settings.IsEnabled);
             
             return result;
         }
         
-        // Méthode par superposition de couleur (plus douce pour les yeux)
+        // Méthode par superposition de couleur (plus douce pour les yeux) qui permet les clics
         private bool ApplyColorOverlay(FilterSettings settings)
         {
             if (_overlayWindow == null)
@@ -73,11 +74,22 @@ namespace FoxyBlueLight.Services
                     Topmost = true,
                     WindowState = WindowState.Maximized,
                     ShowInTaskbar = false,
-                    ResizeMode = ResizeMode.NoResize
+                    ResizeMode = ResizeMode.NoResize,
+                    // Désactiver l'interaction avec cette fenêtre
+                    IsHitTestVisible = false
                 };
                 
-                _overlayWindow.MouseDown += (s, e) => { e.Handled = true; };
-                _overlayWindow.KeyDown += (s, e) => { e.Handled = true; };
+                // Créer la fenêtre et appliquer les styles pour passer les clics
+                _overlayWindow.SourceInitialized += (s, e) => 
+                {
+                    IntPtr hwnd = new WindowInteropHelper(_overlayWindow).Handle;
+                    int extendedStyle = NativeMethods.GetWindowLong(hwnd, NativeMethods.GWL_EXSTYLE);
+                    NativeMethods.SetWindowLong(
+                        hwnd, 
+                        NativeMethods.GWL_EXSTYLE, 
+                        extendedStyle | NativeMethods.WS_EX_TRANSPARENT | NativeMethods.WS_EX_LAYERED | NativeMethods.WS_EX_NOACTIVATE
+                    );
+                };
             }
             
             Color filterColor = GetFilterColorForSettings(settings);
@@ -152,7 +164,7 @@ namespace FoxyBlueLight.Services
             }
             
             bool result = SetRamp(ramp);
-            RestoreScreen.SaveFilterStateToRegistry(settings.IsEnabled);
+            SaveFilterStateToRegistry(settings.IsEnabled);
             
             return result;
         }
@@ -339,8 +351,6 @@ namespace FoxyBlueLight.Services
         
         private void CalculateTemperatureMultipliers(int temperature, out double red, out double green, out double blue)
         {
-            // Algorithme de calcul de couleur en fonction de la température (Kelvin)
-            // Approximation basée sur le modèle de corps noir
             temperature = Math.Max(1000, Math.Min(40000, temperature)) / 100;
             
             if (temperature <= 66)
@@ -385,6 +395,24 @@ namespace FoxyBlueLight.Services
             }
             
             return result;
+        }
+        
+        private void SaveFilterStateToRegistry(bool isEnabled)
+        {
+            try
+            {
+                Microsoft.Win32.Registry.CurrentUser.CreateSubKey(@"SOFTWARE\FoxyBlueLight");
+                var key = Microsoft.Win32.Registry.CurrentUser.OpenSubKey(@"SOFTWARE\FoxyBlueLight", true);
+                if (key != null)
+                {
+                    key.SetValue("FilterEnabled", isEnabled ? 1 : 0);
+                    key.Close();
+                }
+            }
+            catch
+            {
+                // Ignorer les erreurs
+            }
         }
     }
 }

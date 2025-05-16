@@ -10,8 +10,13 @@ namespace FoxyBlueLight.Views
 {
     public partial class ModernWidget : Window
     {
-        // Ajout de cette propriété pour accéder au ViewModel
+        // Accès au ViewModel
         private MainViewModel ViewModel => DataContext as MainViewModel;
+        
+        // Variables pour le redimensionnement
+        private bool _isResizing = false;
+        private Point _resizeStartPoint;
+        private Size _originalSize;
         
         public ModernWidget()
         {
@@ -21,21 +26,14 @@ namespace FoxyBlueLight.Views
             var workArea = SystemParameters.WorkArea;
             Left = workArea.Right - Width - 20;
             Top = workArea.Top + 40;
-            
-            // S'abonner à l'événement Loaded pour initialiser l'UI après le chargement
-            Loaded += ModernWidget_Loaded;
         }
         
         private void ModernWidget_Loaded(object sender, RoutedEventArgs e)
         {
-            // Initialiser l'état du switch en fonction des paramètres
-            if (ViewModel != null)
-            {
-                UpdateToggleSwitchState(ViewModel.Settings.IsEnabled);
-            }
+            // Initialiser l'interface avec les paramètres actuels
         }
         
-        // Méthode pour vérifier si le contrôle est chargé, à utiliser dans les gestionnaires d'événements
+        // Méthode pour vérifier si le contrôle est chargé
         private bool IsControlLoaded => IsLoaded;
         
         protected override void OnClosed(EventArgs e)
@@ -52,7 +50,7 @@ namespace FoxyBlueLight.Views
         // Déplacer la fenêtre en cliquant dessus
         private void Grid_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (e.ChangedButton == MouseButton.Left)
+            if (e.ChangedButton == MouseButton.Left && e.LeftButton == MouseButtonState.Pressed)
             {
                 DragMove();
             }
@@ -82,43 +80,42 @@ namespace FoxyBlueLight.Views
             }
         }
         
-        // Gestion du toggle switch
-        private void ToggleSwitch_MouseDown(object sender, MouseButtonEventArgs e)
+        // Gestionnaires pour le redimensionnement personnalisé
+        private void ResizeGrip_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (ViewModel != null)
+            if (e.ChangedButton == MouseButton.Left)
             {
-                // Inverser l'état
-                ViewModel.ToggleFilterCommand.Execute(null);
-                
-                // Mettre à jour l'apparence du toggle switch
-                UpdateToggleSwitchState(ViewModel.Settings.IsEnabled);
+                _isResizing = true;
+                _resizeStartPoint = e.GetPosition(this);
+                _originalSize = new Size(Width, Height);
+                e.Handled = true;
+                Mouse.Capture((UIElement)sender);
             }
         }
         
-        // Met à jour l'apparence du toggle switch
-        private void UpdateToggleSwitchState(bool isOn)
+        private void ResizeGrip_MouseMove(object sender, MouseEventArgs e)
         {
-            // Mise à jour de la couleur de fond
-            ToggleBackground.Background = new SolidColorBrush(
-                isOn ? (Color)ColorConverter.ConvertFromString("#FF6700") : 
-                       (Color)ColorConverter.ConvertFromString("#333333"));
-            
-            // Animation de la position du thumb
-            double targetPosition = isOn ? 26 : 2;
-            AnimateThumbPosition(targetPosition);
+            if (_isResizing)
+            {
+                Point currentPosition = e.GetPosition(this);
+                double diffX = currentPosition.X - _resizeStartPoint.X;
+                double diffY = currentPosition.Y - _resizeStartPoint.Y;
+                
+                Width = Math.Max(MinWidth, _originalSize.Width + diffX);
+                Height = Math.Max(MinHeight, _originalSize.Height + diffY);
+                
+                e.Handled = true;
+            }
         }
         
-        // Anime la position du thumb
-        private void AnimateThumbPosition(double targetPosition)
+        private void ResizeGrip_MouseUp(object sender, MouseButtonEventArgs e)
         {
-            var animation = new DoubleAnimation
+            if (e.ChangedButton == MouseButton.Left)
             {
-                To = targetPosition,
-                Duration = TimeSpan.FromMilliseconds(150),
-                EasingFunction = new CubicEase { EasingMode = EasingMode.EaseOut }
-            };
-            
-            SwitchThumb.BeginAnimation(Canvas.LeftProperty, animation);
+                _isResizing = false;
+                Mouse.Capture(null);
+                e.Handled = true;
+            }
         }
         
         // Gestion des changements de mode

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Windows.Media;
 
 namespace FoxyBlueLight.Models
@@ -27,7 +28,7 @@ namespace FoxyBlueLight.Models
         public bool IsEnabled { get; set; } = false;
         public FilterMode Mode { get; set; } = FilterMode.Temperature;
         public AttenuationType AttenuationType { get; set; } = AttenuationType.ColorOverlay;
-        public double Opacity { get; set; } = 0.85; // Transparence du widget
+        public double Opacity { get; set; } = 0.3; // Transparence du widget
         
         // Paramètres de couleur
         public int ColorTemperature { get; set; } = 4500; // Kelvin (1900-6500)
@@ -43,17 +44,6 @@ namespace FoxyBlueLight.Models
         public bool UseSchedule { get; set; } = false;
         public TimeSpan ActivationTime { get; set; } = new TimeSpan(20, 0, 0); // 20:00
         public TimeSpan DeactivationTime { get; set; } = new TimeSpan(7, 0, 0); // 07:00
-        
-        // Couleurs prédéfinies améliorées pour l'interface
-        public static readonly Color[] PresetColors = new[]
-        {
-            Color.FromRgb(255, 243, 224),  // Ambre chaud
-            Color.FromRgb(255, 224, 178),  // Orange doux
-            Color.FromRgb(255, 236, 179),  // Jaune doux
-            Color.FromRgb(224, 242, 241),  // Cyan très doux
-            Color.FromRgb(225, 190, 231),  // Mauve tendre
-            Color.FromRgb(209, 196, 233)   // Lavande
-        };
         
         // Noms des modes pour l'affichage
         public static readonly string[] ModeNames = new[]
@@ -75,6 +65,17 @@ namespace FoxyBlueLight.Models
             "Luminosité préservée"
         };
         
+        // Couleurs prédéfinies pour le mode personnalisé
+        public static readonly List<ColorInfo> PresetColors = new List<ColorInfo>
+        {
+            new ColorInfo("#FFE3B9", "Ambre chaud"),
+            new ColorInfo("#FFD689", "Orange doux"),
+            new ColorInfo("#FFECB3", "Jaune doux"),
+            new ColorInfo("#E0F2F1", "Cyan très doux"),
+            new ColorInfo("#E1BEE7", "Mauve tendre"),
+            new ColorInfo("#D1C4E9", "Lavande")
+        };
+        
         // Clone les paramètres
         public FilterSettings Clone()
         {
@@ -94,6 +95,18 @@ namespace FoxyBlueLight.Models
                 ActivationTime = this.ActivationTime,
                 DeactivationTime = this.DeactivationTime
             };
+        }
+    }
+
+    public class ColorInfo
+    {
+        public Color Color { get; set; }
+        public string Name { get; set; }
+        
+        public ColorInfo(string hexCode, string name)
+        {
+            Color = (Color)ColorConverter.ConvertFromString(hexCode);
+            Name = name;
         }
     }
 }
